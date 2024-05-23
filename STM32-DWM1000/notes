@@ -1,0 +1,118 @@
+TDoA RTLS
+------------------------
+
+SPI - Serial Peripheral Bus
+
+MOSI - Master Output Slave Input (Ведущий передает, Ведомый принимает),
+MISO - Master Input Slave Output (Ведущий принимает, Ведомый передает),
+SCLK, иначе SCK - Serial Clock (тактовый сигнал).
+SS (CSN) - выбор ведомого
+NRST - тупа сброс
+
+HSI - High Speed Internal
+
+LDO - Low-dropout regulator - тип линейных регуляторов напряжения, отличающихся малым падением напряжения на регулирующем элементе.
+Preamble, SFD (start of frame delimiter)
+
+PRF - Pulse repetition frequency
+PHR - PHY header
+PHY - physical layer
+SECDED - single error correct, double error detect
+PAC - preamble acquisition chunk - размер чанка для поиска преамбулы. Не больше длины самой преамбулы.
+
+MAC - media access control 
+CRC - Cyclic redundancy check - проверка контрольной суммы - 16 bit
+FCS - frame check sequence
+ACK - Acknowledgement - Подтверждение
+EUI - extended unique identifier register
+
+
+
+
+
+
+
+
+
+Arduino TAG в начале отправляет Blink msg:
+generateBlinkFrame()
+
+C5 05 9C 3B 60 82 EA 22 00 7D 00 7D - total 12 bytes
+
+C5 - FC_1_BLINK - blink const??
+05 - seq number (+1 every msg)
+9C 3B 60 82 EA 22 00 7D - reversed tag address (sourceAddressReverse)
+00 7D - reversed short tag adress (sourceShortAddressReverse)
+
+
+
+Anchor при получении Blink отправляет Range_Init (total 15 bytes):
+41 8c 5e ca de 9c 3b 60 82 ea 22 00 7d 00 84 05
+
+41 8c - frame control, range_init
+ca - seq number (+1 every msg)
+ca de - PAN ID (0xDECA)
+9c 3b 60 82 ea 22 00 7d - reversed destination adress (tag adress)
+00 84 - reversed source adress (anchor adress: 84:00:5B:D5:A9:9A:E2:9C)
+05 - RANGING_INIT CONST
+
+
+
+Tag при получении range_init отправляет poll запрос:
+poll data: 41 88  CA  CA DE  FF FF  00 7D  00  01  84 00  58 1B
+
+41 88 - frame control, FC_1 = 0x41, FC_2_SHORT = 0x88
+CA - seq number (+1 every msg)
+CA DE - PAN ID (0xDECA)
+FF FF - shortDestinationAddressReverse (скорее всего, ff ff означает, что всем доступным анкерам отправить)
+00 7D - sourceShortAddressReverse - адресс источника (TAg), в данном случае, полный адрес: "7D:00:22:EA:82:60:3B:9C"
+00 - POLL CONST
+01 - networkDevicesNumber - количество анкеров, вроде как
+	***Начало списка для нескольких анкеров***
+84 00 - Адрес анкера, кому информация отправляется (84:00:5B:D5:A9:9A:E2:9C)
+58 1B - reply time reversed (default 7000 = 1b58)
+
+
+
+Anchor при получении Poll отвечает PollAck
+pollAck data: 41 88  9A  CA DE  00 7D 00 84 01
+ 
+41 88 - frame control, FC_1 = 0x41, FC_2_SHORT = 0x88
+9A - seq number (+1 every msg)
+CA DE - PAN ID (0xDECA)
+00 7D - shortDestinationAddressReverse - адресс Tag - полный адрес: "7D:00:22:EA:82:60:3B:9C"
+00 84 - sourceShortAddressReverse - адресс источника Anchor - (anchor adress: 84:00:5B:D5:A9:9A:E2:9C)
+01 - POLL_ACK const
+
+
+
+Tag при получении PollAck отправляет Range запрос:
+Range data: 41 88  9A  CA DE  FF FF  00 7D  02  01  84 00  00 1C 7E A2 E7  45 19 CB DC E7  00 02 6C 15 E8 
+
+41 88 - frame control, FC_1 = 0x41, FC_2_SHORT = 0x88
+9A - seq number (+1 every msg)
+CA DE - PAN ID (0xDECA)
+FF FF - shortDestinationAddressReverse (скорее всего, ff ff означает, что всем доступным анкерам отправить)
+00 7D - sourceShortAddressReverse - адресс источника (TAg), в данном случае, полный адрес: "7D:00:22:EA:82:60:3B:9C"
+02 - RANGE const
+01 - networkDevicesNumber - количество анкеров, вроде как
+	***Начало списка для нескольких анкеров***
+84 00 - Адрес анкера, кому информация отправляется (84:00:5B:D5:A9:9A:E2:9C)
+00 1C 7E A2 E7 - timePollSent timestamp
+45 19 CB DC E7 - timePollAckReceived timestamp
+00 02 6C 15 E8 - timeRangeSent timestamp
+
+
+
+Anchor при получении Range отправляет RangeReport:
+RangeReport data: 41 88  8B  CA DE  00 7D  00 84  03  8F C2 F5 3C  1F 85 54 C2
+
+41 88 - frame control, FC_1 = 0x41, FC_2_SHORT = 0x88
+8B - seq number (+1 every msg)
+CA DE - PAN ID (0xDECA)
+00 7D - shortDestinationAddressReverse - адресс Tag - полный адрес: "7D:00:22:EA:82:60:3B:9C"
+00 84 - sourceShortAddressReverse - адресс источника Anchor - (anchor adress: 84:00:5B:D5:A9:9A:E2:9C)
+03 - RANGE_REPORT const
+
+
+

@@ -1,0 +1,95 @@
+/opt/st/stm32cubeide_1.12.1/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.10.3-2021.10.linux64_1.0.200.202301161003/tools/arm-none-eabi/include/c++/10.3.1/cmath:357:3:constexpr float std::log10(float)	16	static
+../Core/Src/dw1000_lib/DW1000.cpp:75:6:static void DW1000Class::enableMode(const byte*)	16	static
+../Core/Src/dw1000_lib/DW1000.cpp:83:6:static void DW1000Class::tune()	88	static
+../Core/Src/dw1000_lib/DW1000.cpp:691:6:static void DW1000Class::handleInterrupt()	8	static
+../Core/Src/dw1000_lib/DW1000.cpp:747:6:static void DW1000Class::readSystemConfigurationRegister()	8	static
+../Core/Src/dw1000_lib/DW1000.cpp:752:6:static void DW1000Class::writeSystemConfigurationRegister()	8	static
+../Core/Src/dw1000_lib/DW1000.cpp:757:6:static void DW1000Class::readSystemEventStatusRegister()	8	static
+../Core/Src/dw1000_lib/DW1000.cpp:762:6:static void DW1000Class::readNetworkIdAndDeviceAddress()	8	static
+../Core/Src/dw1000_lib/DW1000.cpp:767:6:static void DW1000Class::writeNetworkIdAndDeviceAddress()	8	static
+../Core/Src/dw1000_lib/DW1000.cpp:772:6:static void DW1000Class::readSystemEventMaskRegister()	8	static
+../Core/Src/dw1000_lib/DW1000.cpp:777:6:static void DW1000Class::writeSystemEventMaskRegister()	8	static
+../Core/Src/dw1000_lib/DW1000.cpp:782:6:static void DW1000Class::readChannelControlRegister()	8	static
+../Core/Src/dw1000_lib/DW1000.cpp:787:6:static void DW1000Class::writeChannelControlRegister()	8	static
+../Core/Src/dw1000_lib/DW1000.cpp:792:6:static void DW1000Class::readTransmitFrameControlRegister()	8	static
+../Core/Src/dw1000_lib/DW1000.cpp:797:6:static void DW1000Class::writeTransmitFrameControlRegister()	8	static
+../Core/Src/dw1000_lib/DW1000.cpp:802:6:static void DW1000Class::setNetworkId(uint16_t)	16	static
+../Core/Src/dw1000_lib/DW1000.cpp:808:6:static void DW1000Class::setDeviceAddress(uint16_t)	16	static
+../Core/Src/dw1000_lib/DW1000.cpp:814:9:static uint8_t DW1000Class::nibbleFromChar(char)	16	static
+../Core/Src/dw1000_lib/DW1000.cpp:831:6:static void DW1000Class::convertToByte(char*, byte*)	40	static
+../Core/Src/dw1000_lib/DW1000.cpp:842:6:static void DW1000Class::setEUI(char*)	24	static
+../Core/Src/dw1000_lib/DW1000.cpp:849:6:static void DW1000Class::setEUI(byte*)	32	static
+../Core/Src/dw1000_lib/DW1000.cpp:862:6:static void DW1000Class::setFrameFilter(bool)	16	static
+../Core/Src/dw1000_lib/DW1000.cpp:867:6:static void DW1000Class::setFrameFilterBehaveCoordinator(bool)	16	static
+../Core/Src/dw1000_lib/DW1000.cpp:872:6:static void DW1000Class::setFrameFilterAllowBeacon(bool)	16	static
+../Core/Src/dw1000_lib/DW1000.cpp:877:6:static void DW1000Class::setFrameFilterAllowData(bool)	16	static
+../Core/Src/dw1000_lib/DW1000.cpp:882:6:static void DW1000Class::setFrameFilterAllowAcknowledgement(bool)	16	static
+../Core/Src/dw1000_lib/DW1000.cpp:887:6:static void DW1000Class::setFrameFilterAllowMAC(bool)	16	static
+../Core/Src/dw1000_lib/DW1000.cpp:892:6:static void DW1000Class::setFrameFilterAllowReserved(bool)	16	static
+../Core/Src/dw1000_lib/DW1000.cpp:897:6:static void DW1000Class::setReceiverAutoReenable(bool)	16	static
+../Core/Src/dw1000_lib/DW1000.cpp:902:6:static void DW1000Class::interruptOnSent(bool)	16	static
+../Core/Src/dw1000_lib/DW1000.cpp:907:6:static void DW1000Class::interruptOnReceived(bool)	16	static
+../Core/Src/dw1000_lib/DW1000.cpp:913:6:static void DW1000Class::interruptOnReceiveFailed(bool)	16	static
+../Core/Src/dw1000_lib/DW1000.cpp:921:6:static void DW1000Class::interruptOnReceiveTimeout(bool)	16	static
+../Core/Src/dw1000_lib/DW1000.cpp:926:6:static void DW1000Class::interruptOnReceiveTimestampAvailable(bool)	16	static
+../Core/Src/dw1000_lib/DW1000.cpp:931:6:static void DW1000Class::interruptOnAutomaticAcknowledgeTrigger(bool)	16	static
+../Core/Src/dw1000_lib/DW1000.cpp:936:6:static void DW1000Class::setAntennaDelay(uint16_t)	16	static
+../Core/Src/dw1000_lib/DW1000.cpp:942:10:static uint16_t DW1000Class::getAntennaDelay()	8	static
+../Core/Src/dw1000_lib/DW1000.cpp:947:6:static void DW1000Class::idle()	8	static
+../Core/Src/dw1000_lib/DW1000.cpp:954:6:static void DW1000Class::newReceive()	8	static
+../Core/Src/dw1000_lib/DW1000.cpp:962:6:static void DW1000Class::startReceive()	8	static
+../Core/Src/dw1000_lib/DW1000.cpp:969:6:static void DW1000Class::newTransmit()	8	static
+../Core/Src/dw1000_lib/DW1000.cpp:977:6:static void DW1000Class::startTransmit()	8	static
+../Core/Src/dw1000_lib/DW1000.cpp:995:6:static void DW1000Class::enableClock(byte)	16	static
+../Core/Src/dw1000_lib/DW1000.cpp:1010:6:static void DW1000Class::newConfiguration()	8	static
+../Core/Src/dw1000_lib/DW1000.cpp:1020:6:static void DW1000Class::commitConfiguration()	16	static
+../Core/Src/dw1000_lib/DW1000.cpp:1043:6:static void DW1000Class::suppressFrameCheck(bool)	16	static
+../Core/Src/dw1000_lib/DW1000.cpp:1048:6:static void DW1000Class::useSmartPower(bool)	16	static
+../Core/Src/dw1000_lib/DW1000.cpp:1054:12:static DW1000Time DW1000Class::setDelay(const DW1000Time&)	32	static
+../Core/Src/dw1000_lib/DW1000.cpp:1083:6:static void DW1000Class::receivePermanently(bool)	16	static
+../Core/Src/dw1000_lib/DW1000.cpp:1094:6:static void DW1000Class::setData(byte*, uint16_t)	16	static
+../Core/Src/dw1000_lib/DW1000.cpp:1115:6:static void DW1000Class::setData(const char (&)[])	24	static
+../Core/Src/dw1000_lib/DW1000.cpp:1125:10:static uint16_t DW1000Class::getDataLength()	16	static
+../Core/Src/dw1000_lib/DW1000.cpp:1147:6:static void DW1000Class::getData(byte*, uint16_t)	16	static
+../Core/Src/dw1000_lib/DW1000.cpp:1156:6:static void DW1000Class::getData(char (&)[])	24	static
+../Core/Src/dw1000_lib/DW1000.cpp:1178:6:static void DW1000Class::getTransmitTimestamp(DW1000Time&)	24	static
+../Core/Src/dw1000_lib/DW1000.cpp:1185:6:static void DW1000Class::getReceiveTimestamp(DW1000Time&)	24	static
+../Core/Src/dw1000_lib/DW1000.cpp:1195:6:static void DW1000Class::correctTimestamp(DW1000Time&)	48	static
+../Core/Src/dw1000_lib/DW1000.cpp:1265:6:static void DW1000Class::getSystemTimestamp(DW1000Time&)	24	static
+../Core/Src/dw1000_lib/DW1000.cpp:1272:6:static void DW1000Class::getTransmitTimestamp(byte*)	16	static
+../Core/Src/dw1000_lib/DW1000.cpp:1277:6:static void DW1000Class::getReceiveTimestamp(byte*)	16	static
+../Core/Src/dw1000_lib/DW1000.cpp:1282:6:static void DW1000Class::getSystemTimestamp(byte*)	16	static
+../Core/Src/dw1000_lib/DW1000.cpp:1290:6:static void DW1000Class::setDataRate(byte)	24	static
+../Core/Src/dw1000_lib/DW1000.cpp:1340:6:static void DW1000Class::setPulseFrequency(byte)	16	static
+../Core/Src/dw1000_lib/DW1000.cpp:1350:6:static byte DW1000Class::getPulseFrequency()	4	static
+../Core/Src/dw1000_lib/DW1000.cpp:1355:6:static void DW1000Class::setPreambleLength(byte)	16	static
+../Core/Src/dw1000_lib/DW1000.cpp:1380:6:static void DW1000Class::useExtendedFrameLength(bool)	16	static
+../Core/Src/dw1000_lib/DW1000.cpp:1387:6:static void DW1000Class::setChannel(byte)	16	static
+../Core/Src/dw1000_lib/DW1000.cpp:1436:6:static void DW1000Class::setPreambleCode(byte)	16	static
+../Core/Src/dw1000_lib/DW1000.cpp:1446:6:static void DW1000Class::setDefaults()	8	static
+../Core/Src/dw1000_lib/DW1000.cpp:1486:6:static bool DW1000Class::isTransmitDone()	8	static
+../Core/Src/dw1000_lib/DW1000.cpp:1491:6:static bool DW1000Class::isReceiveTimestampAvailable()	8	static
+../Core/Src/dw1000_lib/DW1000.cpp:1496:6:static bool DW1000Class::isReceiveDone()	8	static
+../Core/Src/dw1000_lib/DW1000.cpp:1505:6:static bool DW1000Class::isReceiveFailed()	16	static
+../Core/Src/dw1000_lib/DW1000.cpp:1520:6:static bool DW1000Class::isReceiveTimeout()	16	static
+../Core/Src/dw1000_lib/DW1000.cpp:1525:6:static bool DW1000Class::isClockProblem()	16	static
+../Core/Src/dw1000_lib/DW1000.cpp:1537:6:static void DW1000Class::clearInterrupts()	8	static
+../Core/Src/dw1000_lib/DW1000.cpp:1542:6:static void DW1000Class::clearAllStatus()	8	static
+../Core/Src/dw1000_lib/DW1000.cpp:1549:6:static void DW1000Class::clearReceiveTimestampAvailableStatus()	8	static
+../Core/Src/dw1000_lib/DW1000.cpp:1555:6:static void DW1000Class::clearReceiveStatus()	8	static
+../Core/Src/dw1000_lib/DW1000.cpp:1568:6:static void DW1000Class::clearTransmitStatus()	8	static
+../Core/Src/dw1000_lib/DW1000.cpp:1578:7:static float DW1000Class::getReceiveQuality()	24	static
+../Core/Src/dw1000_lib/DW1000.cpp:1590:7:static float DW1000Class::getFirstPathPower()	56	static
+../Core/Src/dw1000_lib/DW1000.cpp:1629:7:static float DW1000Class::getReceivePower()	48	static
+../Core/Src/dw1000_lib/DW1000.cpp:1667:6:static void DW1000Class::getBytes(const char*, byte*, unsigned int)	32	static
+../Core/Src/dw1000_lib/DW1000.cpp:1676:6:static void DW1000Class::setBit(byte*, uint16_t, uint16_t, bool)	40	static
+../Core/Src/dw1000_lib/DW1000.cpp:1698:6:static bool DW1000Class::getBit(byte*, uint16_t, uint16_t)	24	static
+../Core/Src/dw1000_lib/DW1000.cpp:1714:6:static void DW1000Class::writeValueToBytes(byte*, int32_t, uint16_t)	32	static
+../Core/Src/dw1000_lib/DW1000.cpp:1723:6:static void DW1000Class::readBytes(byte, uint16_t, byte*, uint16_t)	40	static
+../Core/Src/dw1000_lib/DW1000.cpp:1734:6:static void DW1000Class::readBytesOTP(uint16_t, byte*)	24	static
+../Core/Src/dw1000_lib/DW1000.cpp:1754:6:static void DW1000Class::writeByte(byte, uint16_t, byte)	16	static
+../Core/Src/dw1000_lib/DW1000.cpp:1759:6:static void DW1000Class::writeBytes(byte, uint16_t, byte*, uint16_t)	40	static
+../Core/Src/dw1000_lib/DW1000.cpp:1769:6:static void DW1000Class::large_power_init()	16	static
+../Core/Src/dw1000_lib/DW1000.cpp:1795:1:void __static_initialization_and_destruction_0(int, int)	16	static
+../Core/Src/dw1000_lib/DW1000.cpp:1795:1:cpp)	8	static
+../Core/Src/dw1000_lib/DW1000.cpp:1795:1:cpp)	8	static
