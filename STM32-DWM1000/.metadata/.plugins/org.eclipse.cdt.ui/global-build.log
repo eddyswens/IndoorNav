@@ -1,7 +1,0 @@
-12:38:54 **** Incremental Build of configuration Debug for project DecaWave_Nucleo ****
-make -j4 all 
-arm-none-eabi-size   DecaWave_Nucleo.elf 
-   text	   data	    bss	    dec	    hex	filename
-  58700	    556	   2536	  61792	   f160	DecaWave_Nucleo.elf
-Finished building: default.size.stdout
- 
