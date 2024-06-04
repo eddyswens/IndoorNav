@@ -67,7 +67,7 @@ static dwt_config_t config = {
 };
 
 //char tag_addr[] = "7D:02:22:EA:82:60:3B:9C";
-char anchor_addr[] = "04:73:5B:D5:A9:9A:E2:AC";
+char anchor_addr[] = "04:73:5B:D5:A9:9A:E2:AC";  // addr = 4
 uint8_t uart_new_line[] = "\r\n";
 
 uint16_t Adelay = 16500;
