@@ -1,0 +1,14 @@
+../Core/Src/dw1000_lib/DW1000Ranging.h:112:14:static void DW1000RangingClass::attachNewRange(void (*)())	16	static
+../Core/Src/dw1000_lib/DW1000Ranging.h:116:14:static void DW1000RangingClass::attachNewDevice(void (*)(DW1000Device*))	16	static
+../Core/Src/dw1000_lib/DW1000Ranging.h:118:14:static void DW1000RangingClass::attachInactiveDevice(void (*)(DW1000Device*))	16	static
+../Core/Src/main.cpp:86:6:void newRange()	48	static
+../Core/Src/main.cpp:95:6:void newDevice(DW1000Device*)	40	static
+../Core/Src/main.cpp:101:6:void inactiveDevice(DW1000Device*)	56	static
+../Core/Src/main.cpp:108:5:int dw_main()	40	static
+../Core/Src/main.cpp:137:5:int main()	8	static
+../Core/Src/main.cpp:183:6:void SystemClock_Config()	88	static
+../Core/Src/main.cpp:230:13:void MX_SPI3_Init()	8	static
+../Core/Src/main.cpp:268:13:void MX_USART1_UART_Init()	8	static
+../Core/Src/main.cpp:301:13:void MX_GPIO_Init()	40	static
+../Core/Src/main.cpp:358:6:void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef*)	16	static
+../Core/Src/main.cpp:375:6:void Error_Handler()	4	static,ignoring_inline_asm
