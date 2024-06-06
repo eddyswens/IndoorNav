@@ -1,9 +1,0 @@
-../Core/Src/RANGING_DEV_main.c:129:5:dw_main	88	static
-../Core/Src/RANGING_DEV_main.c:243:13:resp_msg_get_ts	24	static
-../Core/Src/RANGING_DEV_main.c:258:5:main	8	static
-../Core/Src/RANGING_DEV_main.c:310:6:SystemClock_Config	72	static
-../Core/Src/RANGING_DEV_main.c:349:13:MX_SPI2_Init	8	static
-../Core/Src/RANGING_DEV_main.c:389:13:MX_USART2_UART_Init	8	static
-../Core/Src/RANGING_DEV_main.c:424:13:MX_GPIO_Init	40	static
-../Core/Src/RANGING_DEV_main.c:500:6:HAL_TIM_PeriodElapsedCallback	16	static
-../Core/Src/RANGING_DEV_main.c:517:6:Error_Handler	4	static,ignoring_inline_asm

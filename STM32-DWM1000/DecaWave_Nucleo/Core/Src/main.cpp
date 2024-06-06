@@ -38,7 +38,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define DELAY_CALIB false
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -70,7 +70,12 @@ static dwt_config_t config = {
 char anchor_addr[] = "04:73:5B:D5:A9:9A:E2:AC";  // addr = 4
 uint8_t uart_new_line[] = "\r\n";
 
-uint16_t Adelay = 16500;
+// calibrated value
+// 16325 before closet
+uint16_t Adelay = 16397;
+
+float this_anchor_target_distance = 13.0; //measured distance to anchor in m
+uint16_t Adelay_delta = 10; //initial binary search step size
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -87,11 +92,55 @@ static void MX_USART2_UART_Init(void);
 
 void newRange()
 {
-	uint8_t buffer_uart1[32];
+	if (DELAY_CALIB)
+	{
+		static float last_delta = 0.0;
 
-	float range = DW1000Ranging.getDistantDevice()->getRange();
-	sprintf((char*)buffer_uart1, "Distance is: %f\r\n", range);
-	HAL_UART_Transmit(&huart2, buffer_uart1, strlen((char*)buffer_uart1), 100);
+		float dist = 0;
+		for (int i = 0; i < 100; i++) {
+		// get and average 100 measurements
+		dist += DW1000Ranging.getDistantDevice()->getRange();
+		}
+		dist /= 100.0;
+
+		uint8_t buffer_uart1[32];
+		sprintf((char*)buffer_uart1, " Distance is: %f\r\n", dist);
+		HAL_UART_Transmit(&huart2, buffer_uart1, strlen((char*)buffer_uart1), 100);
+
+		if (Adelay_delta < 3) {
+			uint8_t buf[] = "\r\n final Adelay ";
+			HAL_UART_Transmit(&huart2, buf, sizeof(buf), 100);
+//			uint8_t adel[2] = {Adelay & 0xFF, Adelay >> 8};
+			HAL_UART_Transmit(&huart2, (uint8_t *)&Adelay, sizeof(Adelay), 100);
+
+
+			while(1);  //done calibrating
+		}
+
+		float this_delta = dist - this_anchor_target_distance;  //error in measured distance
+
+		if ( this_delta * last_delta < 0.0) Adelay_delta = Adelay_delta / 2; //sign changed, reduce step size
+		last_delta = this_delta;
+
+		if (this_delta > 0.0 ) Adelay += Adelay_delta; //new trial Adelay
+		else Adelay -= Adelay_delta;
+
+		uint8_t buf1[] = "\r\n Adelay = ";
+		HAL_UART_Transmit(&huart2, buf1, sizeof(buf1), 100);
+//		uint8_t adel[2] = {Adelay & 0xFF, Adelay >> 8};
+//		HAL_UART_Transmit(&huart2, adel, sizeof(adel), 100);
+		HAL_UART_Transmit(&huart2, (uint8_t *)&Adelay, sizeof(Adelay), 100);
+		DW1000.setAntennaDelay(Adelay);
+		DW1000Ranging.startAsAnchor(anchor_addr, DW1000.MODE_LONGDATA_RANGE_LOWPOWER, false);
+	}
+	else
+	{
+		uint8_t buffer_uart2[32];
+
+		float range = DW1000Ranging.getDistantDevice()->getRange();
+		sprintf((char*)buffer_uart2, "Distance is: %f\r\n", range);
+		HAL_UART_Transmit(&huart2, buffer_uart2, strlen((char*)buffer_uart2), 100);
+	}
 }
 
 void newDevice(DW1000Device *device)
@@ -120,6 +169,8 @@ int dw_main(void)
 	DW1000Ranging.attachNewRange(newRange);
 	DW1000Ranging.attachNewDevice(newDevice);
 	DW1000Ranging.attachInactiveDevice(inactiveDevice);
+	//Enable the filter to smooth the distance
+	DW1000Ranging.useRangeFilter(true);
 
 	DW1000Ranging.startAsAnchor(anchor_addr, DW1000.MODE_LONGDATA_RANGE_LOWPOWER, false);
 
