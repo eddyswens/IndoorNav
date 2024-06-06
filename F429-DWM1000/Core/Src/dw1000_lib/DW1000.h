@@ -10,7 +10,7 @@
 
 #include "DW1000Types.h"
 #include <string.h>
-#include "DW1000Constants.h"
+//#include "DW1000Constants.h"
 #include "DW1000Time.h"
 
 #include "port.h"
@@ -212,19 +212,19 @@ public:
 	static void (* _handleReceiveTimestampAvailable)(void);
 
 	/* register caches. */
-	static byte _syscfg[LEN_SYS_CFG];
-	static byte _sysctrl[LEN_SYS_CTRL];
-	static byte _sysstatus[LEN_SYS_STATUS];
-	static byte _txfctrl[LEN_TX_FCTRL];
-	static byte _sysmask[LEN_SYS_MASK];
-	static byte _chanctrl[LEN_CHAN_CTRL];
+	static byte _syscfg[SYS_CFG_LEN];
+	static byte _sysctrl[SYS_CTRL_LEN];
+	static byte _sysstatus[SYS_STATUS_LEN];
+	static byte _txfctrl[TX_FCTRL_LEN];
+	static byte _sysmask[SYS_MASK_LEN];
+	static byte _chanctrl[CHAN_CTRL_LEN];
 
 	/* device status monitoring */
 	static byte _vmeas3v3;
 	static byte _tmeas23C;
 
 	/* PAN and short address. */
-	static byte _networkAndAddress[LEN_PANADR];
+	static byte _networkAndAddress[PANADR_LEN];
 
 	/* internal helper that guide tuning the chip. */
 	static bool    _smartPower;
