@@ -600,7 +600,26 @@ void DW1000RangingClass::loop() {
 								computeRangeAsymmetric(myDistantDevice, &myTOF); // CHOSEN RANGING ALGORITHM
 								
 								float distance = myTOF.getAsMeters();
+
+
+
+
+								Serial.print("Distance before adjustment: "); 
+								Serial.println(distance);
+
+								// // double adjustment = getrangebias(5, distance, DW1000.getPulseFrequency());
+								// // distance -= adjustment;
+
+								// Serial.print("Distance after adjustment: "); 
+								// Serial.println(distance);
+
+								// Serial.print("Distance adjustment: "); 
+								// Serial.println(adjustment);
 								
+
+
+
+
 								if (_useRangeFilter) {
 									//Skip first range
 									if (myDistantDevice->getRange() != 0.0f) {
@@ -1030,6 +1049,83 @@ void DW1000RangingClass::computeRangeAsymmetric(DW1000Device* myDistantDevice, D
 	 */
 }
 
+/*! ------------------------------------------------------------------------------------------------------------------
+ * Function: getrangebias()
+ *
+ * Description: This function is used to return the range bias correction need for TWR with DW1000 units.
+ *
+ * input parameters:	
+ * @param chan  - specifies the operating channel (e.g. 1, 2, 3, 4, 5, 6 or 7) 
+ * @param range - the calculated distance before correction
+ * @param prf	- this is the PRF e.g. DWT_PRF_16M or DWT_PRF_64M
+ *
+ * output parameters
+ *
+ * returns correction needed in meters
+ */
+double DW1000RangingClass::getrangebias(byte chan, float range, byte prf)
+{
+    //first get the lookup index that corresponds to given range for a particular channel at 16M PRF
+    int i = 0 ;
+    int chanIdx ;
+    int cmoffseti ;                                 // integer number of CM offset
+
+    double mOffset ;                                // final offset result in metres
+
+    // NB: note we may get some small negitive values e.g. up to -50 cm.
+
+    int rangeint25cm = (int) (range * 4.00) ;       // convert range to integer number of 25cm values.
+
+    if (rangeint25cm > 255) rangeint25cm = 255 ;    // make sure it matches largest value in table (all tables end in 255 !!!!)
+
+    if (prf == DW1000Class::TX_PULSE_FREQ_16MHZ)
+    {
+        switch(chan)
+        {
+            case 4:
+            case 7:
+            {
+                chanIdx = chan_idxwb[chan];
+                while (rangeint25cm > range25cm16PRFwb[chanIdx][i]) i++ ;       // find index in table corresponding to range
+                cmoffseti = i + CM_OFFSET_16M_WB ;                              // nearest centimeter correction
+            }
+            break;
+            default:
+            {
+                chanIdx = chan_idxnb[chan];
+                while (rangeint25cm > range25cm16PRFnb[chanIdx][i]) i++ ;       // find index in table corresponding to range
+                cmoffseti = i + CM_OFFSET_16M_NB ;                              // nearest centimeter correction
+            }
+        }//end of switch
+    }
+    else // 64M PRF
+    {
+        switch(chan)
+        {
+            case 4:
+            case 7:
+            {
+                chanIdx = chan_idxwb[chan];
+                while (rangeint25cm > range25cm64PRFwb[chanIdx][i]) i++ ;       // find index in table corresponding to range
+                cmoffseti = i + CM_OFFSET_64M_WB ;                              // nearest centimeter correction
+            }
+            break;
+            default:
+            {
+                chanIdx = chan_idxnb[chan];
+                while (rangeint25cm > range25cm64PRFnb[chanIdx][i]) i++ ;       // find index in table corresponding to range
+                cmoffseti = i + CM_OFFSET_64M_NB ;                              // nearest centimeter correction
+            }
+        }//end of switch
+    } // end else
+
+
+    mOffset = (float) cmoffseti ;                                       // offset result in centimmetres
+
+    mOffset *= 0.01 ;                                                   // convert to metres
+
+    return (mOffset) ;
+}
 
 /* FOR DEBUGGING*/
 void DW1000RangingClass::visualizeDatas(byte datas[]) {

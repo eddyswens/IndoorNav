@@ -570,11 +570,17 @@ public:
 	static const byte BIAS_900_16_ZERO = 7;
 	static const byte BIAS_900_64_ZERO = 7;
 	
-	// range bias tables (500 MHz in [mm] and 900 MHz in [2mm] - to fit into bytes)
-	static constexpr byte BIAS_500_16[] = {198, 187, 179, 163, 143, 127, 109, 84, 59, 31, 0, 36, 65, 84, 97, 106, 110, 112};
-	static constexpr byte BIAS_500_64[] = {110, 105, 100, 93, 82, 69, 51, 27, 0, 21, 35, 42, 49, 62, 71, 76, 81, 86};
-	static constexpr byte BIAS_900_16[] = {137, 122, 105, 88, 69, 47, 25, 0, 21, 48, 79, 105, 127, 147, 160, 169, 178, 197};
-	static constexpr byte BIAS_900_64[] = {147, 133, 117, 99, 75, 50, 29, 0, 24, 45, 63, 76, 87, 98, 116, 122, 132, 142};
+	// // range bias tables (500 MHz in [mm] and 900 MHz in [2mm] - to fit into bytes)
+	// static constexpr byte BIAS_500_16[] = {198, 187, 179, 163, 143, 127, 109, 84, 59, 31, 0, 36, 65, 84, 97, 106, 110, 112};
+	// static constexpr byte BIAS_500_64[] = {110, 105, 100, 93, 82, 69, 51, 27, 0, 21, 35, 42, 49, 62, 71, 76, 81, 86};
+	// static constexpr byte BIAS_900_16[] = {137, 122, 105, 88, 69, 47, 25, 0, 21, 48, 79, 105, 127, 147, 160, 169, 178, 197};
+	// static constexpr byte BIAS_900_64[] = {147, 133, 117, 99, 75, 50, 29, 0, 24, 45, 63, 76, 87, 98, 116, 122, 132, 142};
+
+		// range bias tables (500 MHz in [mm] and 900 MHz in [2mm] - to fit into bytes)
+	static constexpr byte BIAS_500_16[] = {238, 228, 218, 208, 198, 187, 179, 163, 143, 127, 109, 84, 59, 31, 0, 36, 65, 84, 97, 106, 110, 112};
+	static constexpr byte BIAS_500_64[] = {130, 125, 120, 115, 110, 105, 100, 93, 82, 69, 51, 27, 0, 21, 35, 42, 49, 62, 71, 76, 81, 86};
+	static constexpr byte BIAS_900_16[] = {197, 182, 167, 152, 137, 122, 105, 88, 69, 47, 25, 0, 21, 48, 79, 105, 127, 147, 160, 169, 178, 197};
+	static constexpr byte BIAS_900_64[] = {203, 189, 175, 161, 147, 133, 117, 99, 75, 50, 29, 0, 24, 45, 63, 76, 87, 98, 116, 122, 132, 142};
 	
 };
 
