@@ -14,6 +14,7 @@ target_compile_definitions(stm32cubemx INTERFACE
 
 target_include_directories(stm32cubemx INTERFACE
     ../../Core/Inc
+    ../../Core/Inc/f1
     ../../Drivers/STM32F1xx_HAL_Driver/Inc
     ../../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy
     ../../Drivers/CMSIS/Device/ST/STM32F1xx/Include
@@ -22,6 +23,14 @@ target_include_directories(stm32cubemx INTERFACE
 
 target_sources(stm32cubemx INTERFACE
     ../../Core/Src/main.c
+
+    ../../Core/Src/f1/gpio.c
+    # ../../Core/Src/f1/i2c.c
+    # ../../Core/Src/f1/spi.c
+    ../../Core/Src/f1/system.c
+    # ../../Core/Src/f1/usart.c
+    # ../../Core/Src/f1/usbd_conf.c
+    
     ../../Core/Src/stm32f1xx_it.c
     ../../Core/Src/stm32f1xx_hal_msp.c
     ../../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio_ex.c
