@@ -52,10 +52,10 @@ bool eepromRead(int address, void* data, size_t length)
 {
   int status;
 
-  status = HAL_I2C_Mem_Read(hi2c, devAddr, address, I2C_MEMADD_SIZE_16BIT, data, length, 100);
+  // status = HAL_I2C_Mem_Read(hi2c, devAddr, address, I2C_MEMADD_SIZE_16BIT, data, length, 100);
 
-  if (status == HAL_OK)
-    return true;
+  // if (status == HAL_OK)
+  //   return true;
 
   return false;
 }

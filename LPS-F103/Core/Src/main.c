@@ -68,7 +68,7 @@ static void printMode();
 static void printRadioMode();
 static void printPowerHelp();
 static void help();
-static void bootload(void);
+// static void bootload(void);
 
 typedef enum {mainMenu, modeMenu, idMenu, radioMenu, powerMenu} Menu_t;
 typedef struct {
@@ -84,7 +84,7 @@ static void main_task(void *pvParameters) {
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_I2C1_Init();
+  // MX_I2C1_Init();
   MX_USART1_UART_Init();
   MX_SPI1_Init();
   MX_USB_DEVICE_Init();
@@ -103,24 +103,24 @@ static void main_task(void *pvParameters) {
   }
   printf("\r\n");
 
-  // Initializing pressure sensor (if present ...)
-  lps25hInit(&hi2c1);
-  testSupportPrintStart("Initializing pressure sensor");
-  if (lps25hTestConnection()) {
-    printf("[OK]\r\n");
-    lps25hSetEnabled(true);
-  } else {
-    printf("[FAIL] (%u)\r\n", (unsigned int)hi2c1.ErrorCode);
-    selftestPasses = false;
-  }
+  // // Initializing pressure sensor (if present ...)
+  // lps25hInit(&hi2c1);
+  // testSupportPrintStart("Initializing pressure sensor");
+  // if (lps25hTestConnection()) {
+  //   printf("[OK]\r\n");
+  //   lps25hSetEnabled(true);
+  // } else {
+  //   printf("[FAIL] (%u)\r\n", (unsigned int)hi2c1.ErrorCode);
+  //   selftestPasses = false;
+  // }
 
-  testSupportPrintStart("Pressure sensor self-test");
-  testSupportReport(&selftestPasses, lps25hSelfTest());
+  // testSupportPrintStart("Pressure sensor self-test");
+  // testSupportReport(&selftestPasses, lps25hSelfTest());
 
   // Initializing i2c eeprom
-  eepromInit(&hi2c1);
-  testSupportPrintStart("EEPROM self-test");
-  testSupportReport(&selftestPasses, eepromTest());
+  // eepromInit(&hi2c1);
+  // testSupportPrintStart("EEPROM self-test");
+  // testSupportReport(&selftestPasses, eepromTest());
 
   cfgInit();
 
@@ -280,7 +280,8 @@ static void handleMenuMain(char ch, MenuState* menuState) {
          menuState->configChanged = false;
          break;
     case 'u':
-      bootload();
+      // bootload();
+      break;
     default:
       menuState->configChanged = false;
       break;
@@ -627,25 +628,26 @@ int main() {
   return 0;
 }
 
-// Enter bootloader from software: Taken from micropython machine_bootloader function
-static void bootload(void) {
-    printf("Entering DFU Mode\r\n");
-    HAL_Delay(500);
+// // Enter bootloader from software: Taken from micropython machine_bootloader function
+// static void bootload(void) {
+//     printf("Entering DFU Mode\r\n");
+//     HAL_Delay(500);
 
-    HAL_RCC_DeInit();
-    HAL_DeInit();
+//     HAL_RCC_DeInit();
+//     HAL_DeInit();
 
-    __HAL_REMAPMEMORY_SYSTEMFLASH();
+//     __HAL_REMAPMEMORY_SYSTEMFLASH();
+    
 
-    // arm-none-eabi-gcc 4.9.0 does not correctly inline this
-    //     //     // MSP function, so we write it out explicitly here.
-    _set_MSP(*((uint32_t*) 0x00000000));
-    //__ASM volatile ("movs r3, #0\nldr r3, [r3, #0]\nMSR msp, r3\n" : : : "r3", "sp");
+//     // arm-none-eabi-gcc 4.9.0 does not correctly inline this
+//     //     //     // MSP function, so we write it out explicitly here.
+//     __set_MSP(*((uint32_t*) 0x00000000));
+//     // __ASM volatile ("movs r3, #0\nldr r3, [r3, #0]\nMSR msp, r3\n" : : : "r3", "sp");
 
-    ((void (*)(void)) *((uint32_t*) 0x00000004))();
+//     ((void (*)(void)) *((uint32_t*) 0x00000004))();
 
-    while (1);
-}
+//     while (1);
+// }
 
 // Freertos required callbacks
 void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer, StackType_t **ppxIdleTaskStackBuffer, uint32_t *pulIdleTaskStackSize )

@@ -19,54 +19,17 @@ target_include_directories(stm32cubemx INTERFACE
     ../../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy
     ../../Drivers/CMSIS/Device/ST/STM32F1xx/Include
     ../../Drivers/CMSIS/Include
-    ../../STM32_USB_Device_Library/Class/CDC/Inc
-    ../../STM32_USB_Device_Library/Core/Inc
-    ../../libdw1000/inc
-    ../../freertos/inc
+
+    ../../Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc
+    ../../Middlewares/ST/STM32_USB_Device_Library/Core/Inc
+
+    ../../lib/freertos/inc
+
+     ../../vendor/libdw1000/inc
 )
 
 target_sources(stm32cubemx INTERFACE
     ../../Core/Src/main.c
-
-    ../../Core/Src/f1/gpio.c
-   #  ../../Core/Src/f1/i2c.c
-     ../../Core/Src/f1/spi.c
-    ../../Core/Src/f1/system.c
-     ../../Core/Src/f1/usart.c
-    ../../Core/Src/f1/usbd_conf.c
-    ../../Core/Src/bootmode.c
-    ../../Core/Src/button.c
-    ../../Core/Src/cfg.c
-    ../../Core/Src/dwOps.c
-    ../../Core/Src/eeprom.c
-    ../../Core/Src/led.c
-    ../../Core/Src/lpp.c
-    ../../Core/Src/lps25h.c
-    ../../Core/Src/production_test.c
-    ../../Core/Src/test_support.c
-    ../../Core/Src/usb_device.c
-    ../../Core/Src/usbcomm.c
-    ../../Core/Src/usbd_cdc_if.c
-    ../../Core/Src/usbd_desc.c
-    ../../Core/Src/uwb_sniffer.c
-    ../../Core/Src/uwb_tdoa_anchor2.c
-    ../../Core/Src/uwb_tdoa_anchor3.c
-    ../../Core/Src/uwb_twr_anchor.c
-    ../../Core/Src/uwb_twr_tag.c
-    ../../Core/Src/uwb.c
-    ../../freertos/src/event_groups.c
-    ../../freertos/src/list.c
-    ../../freertos/src/port.c
-    ../../freertos/src/queue.c
-    ../../freertos/src/tasks.c
-    ../../freertos/src/timers.c
-    ../../libdw1000/src/libdw1000.c
-    ../../libdw1000/src/libdw1000Spi.c
-    ../../STM32_USB_Device_Library/Core/Src/usbd_ctlreq.c
-    ../../STM32_USB_Device_Library/Core/Src/usbd_ioreq.c
-    ../../STM32_USB_Device_Library/Core/Src/usbd_core.c
-    ../../STM32_USB_Device_Library/Core/Src/usbd_conf_template.c
-
     ../../Core/Src/stm32f1xx_it.c
     ../../Core/Src/stm32f1xx_hal_msp.c
     ../../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio_ex.c
@@ -86,6 +49,64 @@ target_sources(stm32cubemx INTERFACE
     ../../Core/Src/sysmem.c
     ../../Core/Src/syscalls.c
     ../../startup_stm32f103xb.s
+
+    ../../lib/freertos/src/event_groups.c
+    ../../lib/freertos/src/list.c
+    ../../lib/freertos/src/port.c
+    ../../lib/freertos/src/queue.c
+    ../../lib/freertos/src/tasks.c
+    ../../lib/freertos/src/timers.c
+
+    ../../Core/Src/f1/gpio.c
+   #  ../../Core/Src/f1/i2c.c
+    ../../Core/Src/f1/spi.c
+    ../../Core/Src/f1/system.c
+    ../../Core/Src/f1/usart.c
+    ../../Core/Src/f1/usbd_conf.c
+    ../../Core/Src/eeprom.c
+    ../../Core/Src/bootmode.c
+
+    ../../Core/Src/usb_device.c
+    ../../Core/Src/usbd_cdc_if.c
+    ../../Core/Src/usbd_desc.c
+    # ../../Core/Src/lps25h.c
+    ../../Core/Src/led.c
+    ../../Core/Src/button.c
+
+    ../../Core/Src/cfg.c
+    ../../Core/Src/usbcomm.c
+    ../../Core/Src/test_support.c
+    ../../Core/Src/production_test.c
+
+    ../../Core/Src/uwb.c
+    ../../Core/Src/uwb_twr_anchor.c
+    ../../Core/Src/uwb_twr_tag.c
+    ../../Core/Src/uwb_sniffer.c
+    ../../Core/Src/uwb_tdoa_anchor2.c
+    ../../Core/Src/uwb_tdoa_anchor3.c
+    ../../Core/Src/lpp.c
+
+    # ../../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_i2c_ex.c
+    # ../../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_i2c.c
+    ../../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_pcd.c
+    ../../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_pcd_ex.c
+    ../../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_spi.c
+    ../../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_uart.c
+
+    ../../Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_core.c
+    ../../Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ctlreq.c
+    ../../Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ioreq.c
+
+     ../../Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Src/usbd_cdc.c
+
+     ../../vendor/libdw1000/src/libdw1000.c
+     ../../vendor/libdw1000/src/libdw1000Spi.c
+
+     ../../Core/Src/dwOps.c
+
+
+
+     ../../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_ll_usb.c
 )
 
 target_link_directories(stm32cubemx INTERFACE
