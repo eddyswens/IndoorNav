@@ -59,8 +59,8 @@ void MX_SPI1_Init(void)
   hspi1.Init.TIMode = SPI_TIMODE_DISABLED;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLED;
   hspi1.Init.CRCPolynomial = 10;
-  hspi1.Init.CRCLength = SPI_CRC_LENGTH_DATASIZE;
-  hspi1.Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
+  // hspi1.Init.CRCLength = SPI_CRC_LENGTH_DATASIZE;
+  // hspi1.Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
   HAL_SPI_Init(&hspi1);
 
 }
@@ -80,8 +80,8 @@ void MX_SPI1_Init_Fast(void)
   hspi1.Init.TIMode = SPI_TIMODE_DISABLED;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLED;
   hspi1.Init.CRCPolynomial = 10;
-  hspi1.Init.CRCLength = SPI_CRC_LENGTH_DATASIZE;
-  hspi1.Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
+  // hspi1.Init.CRCLength = SPI_CRC_LENGTH_DATASIZE;
+  // hspi1.Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
   HAL_SPI_Init(&hspi1);
 
 }
@@ -107,7 +107,7 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
-    GPIO_InitStruct.Alternate = GPIO_AF0_SPI1;
+    // GPIO_InitStruct.Alternate = GPIO_AF0_SPI1;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /* USER CODE BEGIN SPI1_MspInit 1 */

@@ -39,7 +39,7 @@
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f0xx_hal.h"
+#include "stm32f1xx_hal.h"
 
 extern SPI_HandleTypeDef hspi1;
 
