@@ -53,8 +53,14 @@
 
 #define POWER_LEVELS 10
 
-const uint8_t *uid = (uint8_t*)MCU_ID_ADDRESS;
-
+#define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
+PUTCHAR_PROTOTYPE
+{
+  HAL_UART_Transmit(&huart1, (uint8_t *)&ch, 1, 0xFFFF);
+  return ch;
+}
+ uint32_t uid[3];
+ 
 static void restConfig();
 static void changeAddress(uint8_t addr);
 static void handleSerialInput(char ch);
@@ -97,10 +103,10 @@ static void main_task(void *pvParameters) {
 
   printf("\r\n\r\n====================\r\n");
 
-  printf("SYSTEM\t: CPU-ID: ");
-  for (i=0; i<12; i++) {
-    printf("%02x", uid[i]);
-  }
+printf("SYSTEM\t: CPU-ID: ");
+for (uint8_t i = 0; i < 3; ++i) {
+  printf("%08X", uid[i]); 
+}
   printf("\r\n");
 
   // // Initializing pressure sensor (if present ...)
@@ -192,7 +198,7 @@ static void main_task(void *pvParameters) {
     //     printf("pressure not ok\r\n");
     //   }
     // }
-
+#define USE_FTDI_UART
     // Accepts serial commands
 #ifdef USE_FTDI_UART
     if (HAL_UART_Receive(&huart1, (uint8_t*)&ch, 1, 0) == HAL_OK) {
@@ -203,26 +209,26 @@ static void main_task(void *pvParameters) {
     }
   }
 }
-
+//Я ЭТО ЗАКОММЕНТИЛ, АНАЛОГИЯ РЕАЛИЗАЦИИ В НАЧАЛЕ КОДА
 /* Function required to use "printf" to print on serial console */
-int _write (int fd, const void *buf, size_t count)
-{
-  // stdout
-  if (fd == 1) {
-    #ifdef USE_FTDI_UART
-      HAL_UART_Transmit(&huart1, (uint8_t *)buf, count, HAL_MAX_DELAY);
-    #else
-      usbcommWrite(buf, count);
-    #endif
-  }
+// int _write (int fd, const void *buf, size_t count)
+// {
+//   // stdout
+//   if (fd == 1) {
+//     #ifdef USE_FTDI_UART
+//       HAL_UART_Transmit(&huart1, (uint8_t *)buf, count, HAL_MAX_DELAY);
+//     #else
+//       usbcommWrite(buf, count);
+//     #endif
+//   }
 
-  // stderr
-  if (fd == 2) {
-    HAL_UART_Transmit(&huart1, (uint8_t *)buf, count, HAL_MAX_DELAY);
-  }
+//   // stderr
+//   if (fd == 2) {
+//     HAL_UART_Transmit(&huart1, (uint8_t *)buf, count, HAL_MAX_DELAY);
+//   }
 
-  return count;
-}
+//   return count;
+// }
 
 static void handleMenuMain(char ch, MenuState* menuState) {
   switch (ch) {
@@ -578,8 +584,6 @@ static void printRadioModeList()
   printf("3: low bitrate, long preamble\r\n");
 }
 
-
-
 static void printPowerHelp() {
   printf("Power menu\r\n");
   printf("-------------------\r\n");
@@ -612,16 +616,19 @@ static StackType_t ucMainStack[configMINIMAL_STACK_SIZE];
 int main() {
   // Reset of all peripherals, Initializes the Flash interface and the Systick.
   HAL_Init();
-
+ 
   // Configure the system clock
   SystemClock_Config();
+
+uid[0] = HAL_GetUIDw0();
+uid[1] = HAL_GetUIDw1();
+uid[2] = HAL_GetUIDw2();
 
   // Setup main task
   xTaskCreateStatic( main_task, "main", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES - 2, ucMainStack, &xMainTask );
 
   // Start the FreeRTOS scheduler
   vTaskStartScheduler();
-
   // Should never reach there
   while(1);
 

@@ -105,11 +105,11 @@ The implementation must handle
 #define MIN_TOF ANTENNA_DELAY
 
 #define MAX_CLOCK_DEVIATION_SPEC 10e-6
-#define CLOCK_CORRECTION_SPEC_MIN (1.0d - MAX_CLOCK_DEVIATION_SPEC * 2)
-#define CLOCK_CORRECTION_SPEC_MAX (1.0d + MAX_CLOCK_DEVIATION_SPEC * 2)
+#define CLOCK_CORRECTION_SPEC_MIN (1.0 - MAX_CLOCK_DEVIATION_SPEC * 2)
+#define CLOCK_CORRECTION_SPEC_MAX (1.0 + MAX_CLOCK_DEVIATION_SPEC * 2)
 
 #define CLOCK_CORRECTION_ACCEPTED_NOISE 0.03e-6
-#define CLOCK_CORRECTION_FILTER 0.1d
+#define CLOCK_CORRECTION_FILTER 0.1
 #define CLOCK_CORRECTION_BUCKET_MAX 4
 
 #define DISTANCE_VALIDITY_PERIOD M2T(2 * 1000);
@@ -367,7 +367,7 @@ static dwTime_t findTransmitTimeAsSoonAsPossible(dwDevice_t *dev)
 
 static double calculateClockCorrection(anchorContext_t* anchorCtx, int remoteTxSeqNr, uint32_t remoteTx, uint32_t rx)
 {
-  double result = 0.0d;
+  double result = 0.0;
 
   // Assigning to uint32_t truncates the diffs and takes care of wrapping clocks
   uint32_t tickCountRemote = remoteTx - anchorCtx->txTimeStamp;
@@ -383,7 +383,7 @@ static double calculateClockCorrection(anchorContext_t* anchorCtx, int remoteTxS
 static uint16_t calculateDistance(anchorContext_t* anchorCtx, int remoteRxSeqNr, uint32_t remoteTx, uint32_t remoteRx, uint32_t rx)
 {
   // Check that the remote received seq nr is our latest tx seq nr
-  if (remoteRxSeqNr == ctx.seqNr && anchorCtx->clockCorrection > 0.0d) {
+  if (remoteRxSeqNr == ctx.seqNr && anchorCtx->clockCorrection > 0.0) {
     uint32_t localTime = rx - ctx.txTime;
     uint32_t remoteTime = (uint32_t)((double)(remoteTx - remoteRx) * anchorCtx->clockCorrection);
     uint32_t distance = (localTime - remoteTime) / 2;
@@ -438,7 +438,7 @@ static bool updateClockCorrection(anchorContext_t* anchorCtx, double clockCorrec
 
   if (-CLOCK_CORRECTION_ACCEPTED_NOISE < diff && diff < CLOCK_CORRECTION_ACCEPTED_NOISE) {
     // LP filter
-    anchorCtx->clockCorrection = anchorCtx->clockCorrection * (1.0d - CLOCK_CORRECTION_FILTER) + clockCorrection * CLOCK_CORRECTION_FILTER;
+    anchorCtx->clockCorrection = anchorCtx->clockCorrection * (1.0 - CLOCK_CORRECTION_FILTER) + clockCorrection * CLOCK_CORRECTION_FILTER;
 
     fillClockCorrectionBucket(anchorCtx);
     sampleIsAccepted = true;
