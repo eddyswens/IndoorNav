@@ -206,7 +206,7 @@ char * uwbAlgorithmName(unsigned int id)
 
 static int checkIrq()
 {
-  return HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_0);
+  return HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_6);
 }
 
 static void uwbTask(void* parameters)
@@ -249,7 +249,7 @@ struct uwbConfig_s * uwbGetConfig()
 
 /**** DWM1000 interrupt handling *****/
 #define DWM_IRQn EXTI0_IRQn
-#define DWM_IRQ_PIN GPIO_PIN_0
+#define DWM_IRQ_PIN GPIO_PIN_6
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
