@@ -619,7 +619,7 @@ int main() {
   // Configure the system clock
   SystemClock_Config();
 
-uid[0] = HAL_GetUIDw0();
+uid[0] = HAL_GetUIDw0();  
 uid[1] = HAL_GetUIDw1();
 uid[2] = HAL_GetUIDw2();
 
