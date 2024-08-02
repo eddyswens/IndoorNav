@@ -22,7 +22,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "stm32f1xx_hal.h"
+#include <stm32f1xx_hal.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -30,9 +30,6 @@
 #include "cfg.h"
 #include "eeprom.h"
 #include "uwb.h"
-
-// Флаг для переключения между EEPROM и заглушкой
-#define USE_FAKE_EEPROM true
 
 typedef struct {
   uint8_t *data;
@@ -58,67 +55,36 @@ typedef struct {
 
 static CfgHeader * cfgHeader = (CfgHeader*) buffer;
 
-// Структура для хранения заглушки конфигурации
-typedef struct {
-  uint8_t address;
-  uint8_t mode;
-  uint8_t anchorList[6];
-  // ... другие поля конфигурации
-} FakeConfigData;
-
-// Глобальная переменная для хранения заглушки
-FakeConfigData fakeConfig = {
-  .address = 0x01,
-  .mode = MODE_ANCHOR,
-  .anchorList = {1, 2, 3, 4, 5, 6},
-  // ... инициализация других полей
-};
-
 static int tlvFindType(TlvArea *tlv, ConfigField type) {
-  #if USE_FAKE_EEPROM
-    // В режиме заглушки эта функция не нужна, 
-    // так как чтение идет напрямую из fakeConfig
-    return 0; 
-  #else
-    uint16_t pos = 0;
-    while (pos < cfgHeader->tlvSize) {
-      if (tlv->data[pos] == type) {
-        return pos;
-      } else {
-        pos += tlv->data[pos+1]+2;
-      }
+  uint16_t pos = 0;
+
+  while (pos < cfgHeader->tlvSize) {
+    if (tlv->data[pos] == type) {
+      return pos;
+    } else {
+      pos += tlv->data[pos+1]+2;
     }
-    return -1;
-  #endif
+  }
+  return -1;
 }
 
 bool deckTlvHasElement(TlvArea *tlv, ConfigField type) {
   return tlvFindType(tlv, type) >= 0;
 }
 
-/* Читает все данные из EEPROM (или из заглушки) */
+/* Reads all the data from the EEPROM */
 static bool readData(void) {
-  #if USE_FAKE_EEPROM
-    // В режиме заглушки данные берутся из fakeConfig
-    memset(buffer, 0, NUMBER_OF_BYTES_READ); 
-    cfgHeader->magic = MAGIC;
-    cfgHeader->majorVersion = 1;
-    cfgHeader->minorVersion = 0;
-    cfgHeader->tlvSize = 0; // Пока что не используем TLV для fakeConfig
+  //int i;
+  if (eepromRead(0, buffer, NUMBER_OF_BYTES_READ)) {
+    /*printf("EEPROM: ");
+    for (i = 0; i <NUMBER_OF_BYTES_READ; i++)
+      printf("0x%02X ", buffer[i]);
+    printf("\r\n");*/
     return true;
-  #else
-    //int i;
-    if (eepromRead(0, buffer, NUMBER_OF_BYTES_READ)) {
-      /*printf("EEPROM: ");
-      for (i = 0; i <NUMBER_OF_BYTES_READ; i++)
-        printf("0x%02X ", buffer[i]);
-      printf("\r\n");*/
-      return true;
-    } else {
-      printf("CONFIG\t: Failed to read data from EEPROM!\r\n");
-      return false;
-    }
-  #endif 
+  } else {
+    printf("CONFIG\t: Failed to read data from EEPROM!\r\n");
+    return false;
+  }
 }
 
 static void write_crc(void) {
@@ -174,9 +140,6 @@ static bool write_defaults(void) {
   cfgWriteU8(cfgMode, MODE_ANCHOR);
   cfgWriteU8list(cfgAnchorlist, default_anchor_list, sizeof(default_anchor_list));
   write_crc();
-  #if USE_FAKE_EEPROM
-    return true;
-  #else
   if (!eepromWrite(0, buffer, 7))
     return false;
   HAL_Delay(10);
@@ -189,7 +152,6 @@ static bool write_defaults(void) {
   } else {
     return false;
   }
-  #endif
 }
 
 void cfgInit(void) {
@@ -211,41 +173,23 @@ void cfgInit(void) {
 }
 
 bool cfgReset(void) {
-  #if USE_FAKE_EEPROM
-    return true;
-  #else
   uint8_t data = 0;
   bool ret = eepromWrite(0, &data, 1);
   HAL_Delay(10);
   return ret;
-  #endif
 }
 
 bool cfgReadU8(ConfigField field, uint8_t * value) {
-  #if USE_FAKE_EEPROM
-    if (field == cfgAddress) {
-      *value = fakeConfig.address;
-    } else if (field == cfgMode) {
-      *value = fakeConfig.mode;
-    } else {
-      // ... обработка других полей uint8_t
-      return false;
-    }
-    return true;
-  #else
-    int pos = tlvFindType(&tlv, field);
-    if (pos > -1) {
-      *value = tlv.data[pos+2];
-    }
-    return (pos > -1);
-  #endif
+  int pos = tlvFindType(&tlv, field);
+
+  if (pos > -1) {
+    *value = tlv.data[pos+2];
+  }
+
+  return (pos > -1);
 }
 
 bool cfgWriteU8(ConfigField field, uint8_t value) {
-    #if USE_FAKE_EEPROM
-      //  ...  заглушка для записи (не делает ничего)
-      return true;
-    #else
     int pos = tlvFindType(&tlv, field);
 
     if (pos > -1) {
@@ -263,26 +207,19 @@ bool cfgWriteU8(ConfigField field, uint8_t value) {
     HAL_Delay(10);
     readData();
     return true;
-    #endif
 }
 
 bool cfgReadU32(ConfigField field, uint32_t * value) {
-  #if USE_FAKE_EEPROM
-    // ... обработка полей uint32_t из fakeConfig
-    return false; //  пока что нет полей Uint32 в fakeConfig
-  #else
-    int pos = tlvFindType(&tlv, field);
-    if (pos > -1) {
-      memcpy(value, &tlv.data[pos+2], sizeof(uint32_t));
-    }
-    return (pos > -1);
-  #endif
+  int pos = tlvFindType(&tlv, field);
+
+  if (pos > -1) {
+    memcpy(value, &tlv.data[pos+2], sizeof(uint32_t));
+  }
+
+  return (pos > -1);
 }
 
 bool cfgWriteU32(ConfigField field, uint32_t value) {
-    #if USE_FAKE_EEPROM
-      return true; //  заглушка
-    #else
     int pos = tlvFindType(&tlv, field);
 
     if (pos > -1) {
@@ -300,33 +237,29 @@ bool cfgWriteU32(ConfigField field, uint32_t value) {
     HAL_Delay(10);
     readData();
     return true;
-    #endif
 }
 
-
 bool cfgReadU8list(ConfigField field, uint8_t list[], uint8_t length) {
-  #if USE_FAKE_EEPROM
-    if (field == cfgAnchorlist && length <= sizeof(fakeConfig.anchorList)) {
-      memcpy(list, fakeConfig.anchorList, length);
-      return true;
-    } else {
-      // ... обработка других списков uint8_t
-      return false; 
-    }
-  #else
-    int pos = tlvFindType(&tlv, field);
-    if (pos > -1) {
-      memcpy(list, &tlv.data[pos+2], length);
-    }
-    return (pos > -1);
-  #endif
+  int pos = tlvFindType(&tlv, field);
+
+  if (pos > -1) {
+    memcpy(list, &tlv.data[pos+2], length);
+  }
+
+  return (pos > -1);
+}
+
+bool cfgFieldSize(ConfigField field, uint8_t * size) {
+  int pos = tlvFindType(&tlv, field);
+
+  if (pos > -1) {
+    *size = tlv.data[pos+1];
+  }
+
+  return (pos > -1);
 }
 
 bool cfgWriteU8list(ConfigField field, uint8_t list[], uint8_t length) {
-    #if USE_FAKE_EEPROM
-      // ...  
-      return true;
-    #else
     int pos = tlvFindType(&tlv, field);
 
     if (pos > -1) {
@@ -346,57 +279,25 @@ bool cfgWriteU8list(ConfigField field, uint8_t list[], uint8_t length) {
     HAL_Delay(10);
     readData();
     return true;
-    #endif
-}
-
-
-bool cfgFieldSize(ConfigField field, uint8_t * size) {
-  #if USE_FAKE_EEPROM
-    if (field == cfgAnchorlist) {
-      *size = sizeof(fakeConfig.anchorList);
-      return true;
-    }
-    // ... обработка других полей 
-    return false;
-  #else
-    int pos = tlvFindType(&tlv, field);
-    if (pos > -1) {
-      *size = tlv.data[pos+1];
-    }
-    return (pos > -1);
-  #endif
 }
 
 bool cfgReadFP32listLength(ConfigField field, uint8_t * size) {
-  #if USE_FAKE_EEPROM
-    // ... 
-    return false; 
-  #else
   bool success = cfgFieldSize(field, size);
   *size /= 4;
   return success;
-  #endif
 }
 
 bool cfgReadFP32list(ConfigField field, float list[], uint8_t length) {
-  #if USE_FAKE_EEPROM
-    // ... 
-    return false; 
-  #else
   int pos = tlvFindType(&tlv, field);
 
   if (pos > -1) {
     memcpy(list, &tlv.data[pos+2], length*sizeof(float));
   }
+
   return (pos > -1);
-  #endif
 }
 
 bool cfgWriteFP32list(ConfigField field, float list[], uint8_t length) {
-    #if USE_FAKE_EEPROM
-      // ...  
-      return true;
-    #else
     int pos = tlvFindType(&tlv, field);
 
     if (pos > -1) {
@@ -420,9 +321,7 @@ bool cfgWriteFP32list(ConfigField field, float list[], uint8_t length) {
     HAL_Delay(10);
     readData();
     return true;
-    #endif
 }
-
 
 static bool binaryMode = false;
 

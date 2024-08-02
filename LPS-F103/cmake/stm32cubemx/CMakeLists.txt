@@ -58,7 +58,7 @@ target_sources(stm32cubemx INTERFACE
     ../../lib/freertos/src/timers.c
 
     ../../Core/Src/f1/gpio.c
-   #  ../../Core/Src/f1/i2c.c
+    ../../Core/Src/f1/i2c.c
     ../../Core/Src/f1/spi.c
     ../../Core/Src/f1/system.c
     ../../Core/Src/f1/usart.c
@@ -86,8 +86,8 @@ target_sources(stm32cubemx INTERFACE
     ../../Core/Src/uwb_tdoa_anchor3.c
     ../../Core/Src/lpp.c
 
-    # ../../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_i2c_ex.c
-    # ../../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_i2c.c
+   # ../../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_i2c_ex.c
+    ../../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_i2c.c
     ../../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_pcd.c
     ../../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_pcd_ex.c
     ../../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_spi.c
