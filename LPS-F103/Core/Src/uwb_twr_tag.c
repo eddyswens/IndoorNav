@@ -90,7 +90,7 @@ static int curr_anchor = 0;
 uwbConfig_t config;
 
 // #define printf(...)
-#define debug(...) // printf(__VA_ARGS__)
+#define debug(...) printf(__VA_ARGS__)
 
 static void txcallback(dwDevice_t *dev)
 {

@@ -85,6 +85,7 @@ void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   HAL_GPIO_WritePin(GPIOC, GPIO_PIN_7, 1);
+
 }
 
 /* USER CODE BEGIN 2 */

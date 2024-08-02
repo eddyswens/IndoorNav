@@ -33,7 +33,7 @@ extern SPI_HandleTypeDef hspi1;
 
 // #define DEBUG_SPI
 
-#define DWM_IRQn EXTI0_IRQn
+#define DWM_IRQn EXTI9_5_IRQn
 
 static dwDevice_t *dev;
 

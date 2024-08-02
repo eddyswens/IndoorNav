@@ -217,12 +217,15 @@ static void uwbTask(void* parameters)
   algorithm->init(&config, dwm);
 
   while(1) {
-    if (xSemaphoreTake(irqSemaphore, timeout/portTICK_PERIOD_MS)) {
-      printf("sosi");
+    BaseType_t res = xSemaphoreTake(irqSemaphore, timeout / portTICK_PERIOD_MS);
+    if (res)
+    {
       do{
           dwHandleInterrupt(dwm);
       } while(checkIrq() != 0);
-    } else {
+    }
+    else
+    {
       timeout = algorithm->onEvent(dwm, eventTimeout);
     }
   }
@@ -250,7 +253,7 @@ struct uwbConfig_s * uwbGetConfig()
 }
 
 /**** DWM1000 interrupt handling *****/
-#define DWM_IRQn EXTI0_IRQn
+#define DWM_IRQn EXTI9_5_IRQn
 #define DWM_IRQ_PIN GPIO_PIN_9
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)

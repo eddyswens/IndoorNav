@@ -98,7 +98,7 @@ static packet_t txPacket;
 static volatile uint8_t curr_tag = 0;
 
 // #define printf(...)
-#define debug(...) // printf(__VA_ARGS__)
+#define debug(...) printf(__VA_ARGS__)
 
 static void txcallback(dwDevice_t *dev)
 {
@@ -243,6 +243,8 @@ static uint32_t twrAnchorOnEvent(dwDevice_t *dev, uwbEvent_t event)
       txcallback(dev);
       break;
     case eventTimeout:
+      // debug("Anchor TimeOut Event\r\n");
+      // break;
     case eventReceiveFailed:
       dwNewReceive(dev);
       dwSetDefaults(dev);
