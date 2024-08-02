@@ -34,8 +34,8 @@ typedef struct {
 
 
 static const led_t leds_revc[] = {
-    [ledRanging] = {.pin = GPIO_PIN_0, .port = GPIOC},
-    [ledSync] = {.pin = GPIO_PIN_1, .port = GPIOC},
+    [ledRanging] = {.pin = GPIO_PIN_0, .port = GPIOC}, //красный
+    [ledSync] = {.pin = GPIO_PIN_1, .port = GPIOC}, 
     [ledMode] = {.pin = GPIO_PIN_2, .port = GPIOC}
 };
 
