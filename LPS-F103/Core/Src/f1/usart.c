@@ -103,7 +103,7 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
 
   /* USER CODE END USART1_MspDeInit 0 */
     /* Peripheral clock disable */
-    __USART2_CLK_ENABLE();
+    __USART2_CLK_DISABLE();
   
     /**USART1 GPIO Configuration    
     PA9     ------> USART1_TX
