@@ -41,11 +41,9 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f1xx_hal.h"
 
-extern UART_HandleTypeDef huart1;
-extern UART_HandleTypeDef huart3;
+extern UART_HandleTypeDef huart2;
 
 void MX_USART1_UART_Init(void);
-void MX_USART3_UART_Init(void);
 
 #ifdef __cplusplus
 }

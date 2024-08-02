@@ -41,47 +41,46 @@
 
 /* USER CODE END 0 */
 
-UART_HandleTypeDef huart1;
+UART_HandleTypeDef huart2;
 
 /* USART1 init function */
 
 void MX_USART1_UART_Init(void)
 {
 
-  huart1.Instance = USART1;
-  huart1.Init.BaudRate = 115200;
-  huart1.Init.WordLength = UART_WORDLENGTH_8B;
-  huart1.Init.StopBits = UART_STOPBITS_1;
-  huart1.Init.Parity = UART_PARITY_NONE;
-  huart1.Init.Mode = UART_MODE_TX_RX;
-  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
-  // huart1.Init.OneBitSampling = UART_ONEBIT_SAMPLING_DISABLED ;
-  // huart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-  HAL_UART_Init(&huart1);
-
+  huart2.Instance = USART2;
+  huart2.Init.BaudRate = 115200;
+  huart2.Init.WordLength = UART_WORDLENGTH_8B;
+  huart2.Init.StopBits = UART_STOPBITS_1;
+  huart2.Init.Parity = UART_PARITY_NONE;
+  huart2.Init.Mode = UART_MODE_TX_RX;
+  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
+  // huart2.Init.OneBitSampling = UART_ONEBIT_SAMPLING_DISABLED ;
+  // huart2.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  HAL_UART_Init(&huart2);
 }
 
 void HAL_UART_MspInit(UART_HandleTypeDef* huart)
 {
   GPIO_InitTypeDef GPIO_InitStruct;
-  if(huart->Instance==USART1)
+  if (huart->Instance == USART2)
   {
   /* USER CODE BEGIN USART1_MspInit 0 */
 
   /* USER CODE END USART1_MspInit 0 */
     /* Peripheral clock enable */
-    __USART1_CLK_ENABLE();
+    __USART2_CLK_ENABLE();
     /**USART1 GPIO Configuration
     PA9     ------> USART1_TX
     PA10     ------> USART1_RX
     */
-    GPIO_InitStruct.Pin = GPIO_PIN_9;
+    GPIO_InitStruct.Pin = GPIO_PIN_2;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-    GPIO_InitStruct.Pin = GPIO_PIN_10;
+    GPIO_InitStruct.Pin = GPIO_PIN_3;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
@@ -98,19 +97,19 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
 void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
 {
 
-  if(huart->Instance==USART1)
+  if (huart->Instance == USART2)
   {
   /* USER CODE BEGIN USART1_MspDeInit 0 */
 
   /* USER CODE END USART1_MspDeInit 0 */
     /* Peripheral clock disable */
-    __USART1_CLK_DISABLE();
+    __USART2_CLK_DISABLE();
   
     /**USART1 GPIO Configuration    
     PA9     ------> USART1_TX
     PA10     ------> USART1_RX 
     */
-    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_9|GPIO_PIN_10);
+    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_2|GPIO_PIN_3);
 
   /* USER CODE BEGIN USART1_MspDeInit 1 */
 

@@ -8,5 +8,12 @@
         "i2c.h": "c",
         "stm32f1xx_hal_i2c.h": "c",
         "gpio.h": "c"
+        "libdw1000.h": "c",
+        "libdw1000spi.h": "c",
+        "dw1000.h": "c",
+        "usbd_cdc.h": "c",
+        "usbd_cdc_if.h": "c",
+        "usbd_core.h": "c",
+        "usbd_def.h": "c"
     }
 }

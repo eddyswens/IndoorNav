@@ -52,13 +52,14 @@
 
 
 #define POWER_LEVELS 10
+#define USE_FTDI_UART
 
-#define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
-PUTCHAR_PROTOTYPE
-{
-  HAL_UART_Transmit(&huart1, (uint8_t *)&ch, 1, 0xFFFF);
-  return ch;
-}
+// #define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
+// PUTCHAR_PROTOTYPE
+// {
+//   HAL_UART_Transmit(&huart2, (uint8_t *)&ch, 1, 0xFFFF);
+//   return ch;
+// }
  uint32_t uid[3];
  
 static void restConfig();
@@ -197,10 +198,11 @@ for (uint8_t i = 0; i < 3; ++i) {
     //     printf("pressure not ok\r\n");
     //   }
     // }
-#define USE_FTDI_UART
+
     // Accepts serial commands
 #ifdef USE_FTDI_UART
-    if (HAL_UART_Receive(&huart1, (uint8_t*)&ch, 1, 0) == HAL_OK) {
+    if (HAL_UART_Receive(&huart2, (uint8_t *)&ch, 1, 0) == HAL_OK)
+    {
 #else
     if(usbcommRead(&ch, 1)) {
 #endif
@@ -210,24 +212,24 @@ for (uint8_t i = 0; i < 3; ++i) {
 }
 //Я ЭТО ЗАКОММЕНТИЛ, АНАЛОГИЯ РЕАЛИЗАЦИИ В НАЧАЛЕ КОДА
 /* Function required to use "printf" to print on serial console */
-// int _write (int fd, const void *buf, size_t count)
-// {
-//   // stdout
-//   if (fd == 1) {
-//     #ifdef USE_FTDI_UART
-//       HAL_UART_Transmit(&huart1, (uint8_t *)buf, count, HAL_MAX_DELAY);
-//     #else
-//       usbcommWrite(buf, count);
-//     #endif
-//   }
+int _write (int fd, const void *buf, size_t count)
+{
+  // stdout
+  if (fd == 1) {
+    #ifdef USE_FTDI_UART
+      HAL_UART_Transmit(&huart2, (uint8_t *)buf, count, HAL_MAX_DELAY);
+    #else
+      usbcommWrite(buf, count);
+    #endif
+  }
 
-//   // stderr
-//   if (fd == 2) {
-//     HAL_UART_Transmit(&huart1, (uint8_t *)buf, count, HAL_MAX_DELAY);
-//   }
+  // stderr
+  if (fd == 2) {
+    HAL_UART_Transmit(&huart2, (uint8_t *)buf, count, HAL_MAX_DELAY);
+  }
 
-//   return count;
-// }
+  return count;
+}
 
 static void handleMenuMain(char ch, MenuState* menuState) {
   switch (ch) {
@@ -614,7 +616,7 @@ static StackType_t ucMainStack[configMINIMAL_STACK_SIZE];
 
 int main() {
   // Reset of all peripherals, Initializes the Flash interface and the Systick.
-  HAL_Init();
+    HAL_Init();
  
   // Configure the system clock
   SystemClock_Config();
