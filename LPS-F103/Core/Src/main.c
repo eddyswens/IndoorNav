@@ -169,7 +169,7 @@ for (uint8_t i = 0; i < 3; ++i) {
   printf("CONFIG\t: Bitrate: %s\r\n", uwbConfig->lowBitrate?"low":"normal");
   printf("CONFIG\t: Preamble: %s\r\n", uwbConfig->longPreamble?"long":"normal");
 
-  HAL_Delay(500);
+      HAL_Delay(500);
 
   ledOff(ledRanging);
   ledOff(ledSync);

@@ -150,6 +150,7 @@ void uwbInit()
   } else if (useLowBitrate && useLongPreamble) {
     mode = MODE_LONGDATA_MID_ACCURACY;
   }
+  
   dwEnableMode(dwm, mode);
 
   dwSetChannel(dwm, CHANNEL_2);
@@ -206,7 +207,7 @@ char * uwbAlgorithmName(unsigned int id)
 
 static int checkIrq()
 {
-  return HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_6);
+  return HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_9);
 }
 
 static void uwbTask(void* parameters)
@@ -217,6 +218,7 @@ static void uwbTask(void* parameters)
 
   while(1) {
     if (xSemaphoreTake(irqSemaphore, timeout/portTICK_PERIOD_MS)) {
+      printf("sosi");
       do{
           dwHandleInterrupt(dwm);
       } while(checkIrq() != 0);
@@ -249,7 +251,7 @@ struct uwbConfig_s * uwbGetConfig()
 
 /**** DWM1000 interrupt handling *****/
 #define DWM_IRQn EXTI0_IRQn
-#define DWM_IRQ_PIN GPIO_PIN_6
+#define DWM_IRQ_PIN GPIO_PIN_9
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
