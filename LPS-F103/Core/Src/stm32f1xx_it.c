@@ -203,9 +203,10 @@ void vApplicationTickHook(void)
 
   /* USER CODE END SysTick_IRQn 1 */
 }
-void EXTI0_IRQHandler(void)
+
+void EXTI9_5_IRQHandler(void)
 {
-  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_0);
+  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_9);
 }
 /******************************************************************************/
 /* STM32F1xx Peripheral Interrupt Handlers                                    */
