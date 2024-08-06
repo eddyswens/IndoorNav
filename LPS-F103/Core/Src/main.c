@@ -616,7 +616,7 @@ static void help() {
 }
 
 static StaticTask_t xMainTask;
-static StackType_t ucMainStack[configMINIMAL_STACK_SIZE];
+static StackType_t ucMainStack[2*configMINIMAL_STACK_SIZE];
 
 int main() {
   // Reset of all peripherals, Initializes the Flash interface and the Systick.
@@ -630,7 +630,7 @@ uid[1] = HAL_GetUIDw1();
 uid[2] = HAL_GetUIDw2();
 
   // Setup main task
-  xTaskCreateStatic( main_task, "main", configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES - 2, ucMainStack, &xMainTask );
+  xTaskCreateStatic( main_task, "main", 2*configMINIMAL_STACK_SIZE, NULL, configMAX_PRIORITIES - 2, ucMainStack, &xMainTask );
 
   // Start the FreeRTOS scheduler
   vTaskStartScheduler();
