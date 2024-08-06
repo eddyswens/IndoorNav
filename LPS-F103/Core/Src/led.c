@@ -34,9 +34,9 @@ typedef struct {
 
 
 static const led_t leds_revc[] = {
-    [ledRanging] = {.pin = GPIO_PIN_0, .port = GPIOC}, //красный
-    [ledSync] = {.pin = GPIO_PIN_1, .port = GPIOC}, 
-    [ledMode] = {.pin = GPIO_PIN_2, .port = GPIOC}
+    [ledRanging] = {.pin = GPIO_PIN_0, .port = GPIOC}, //красный, при запуске
+    [ledSync] = {.pin = GPIO_PIN_1, .port = GPIOC}, //зелёный? не вызывается
+    [ledMode] = {.pin = GPIO_PIN_2, .port = GPIOC} //синий, большую часть времени горит
 };
 
 static bool isBlinking[N_LEDS];

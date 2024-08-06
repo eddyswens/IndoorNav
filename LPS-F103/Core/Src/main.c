@@ -40,6 +40,8 @@
 
 #include "cfg.h"
 #include "eeprom.h"
+#include "ssd1306.h"
+#include "fonts.h"
 
 #include "usb_device.h"
 #include "usbcomm.h"
@@ -110,20 +112,6 @@ for (uint8_t i = 0; i < 3; ++i) {
 }
   printf("\r\n");
 
-  // // Initializing pressure sensor (if present ...)
-  // lps25hInit(&hi2c1);
-  // testSupportPrintStart("Initializing pressure sensor");
-  // if (lps25hTestConnection()) {
-  //   printf("[OK]\r\n");
-  //   lps25hSetEnabled(true);
-  // } else {
-  //   printf("[FAIL] (%u)\r\n", (unsigned int)hi2c1.ErrorCode);
-  //   selftestPasses = false;
-  // }
-
-  // testSupportPrintStart("Pressure sensor self-test");
-  // testSupportReport(&selftestPasses, lps25hSelfTest());
-
   eepromInit(&hi2c1);
   testSupportPrintStart("EEPROM self-test");
   testSupportReport(&selftestPasses, eepromTest());
@@ -144,6 +132,11 @@ for (uint8_t i = 0; i < 3; ++i) {
     printf("TEST\t: One or more self-tests failed, blocking startup!\r\n");
     usbcommSetSystemStarted(true);
   }
+
+   if (ssd1306_Init(&hi2c1) != 0) {
+     printf("TEST\t: Problem with SSD1306!\r\n");
+   }
+     ssd1306_Fill(Black);
 
   // Printing UWB configuration
   struct uwbConfig_s * uwbConfig = uwbGetConfig();
@@ -186,18 +179,9 @@ for (uint8_t i = 0; i < 3; ++i) {
   // Main loop ...
   while(1) {
     usbcommPrintWelcomeMessage();
-
+    print_config();
     ledTick();
     handleButton();
-    // // Measure pressure
-    // if (uwbConfig.mode != modeSniffer) {
-    //   if(lps25hGetData(&pressure, &temperature, &asl)) {
-    //     pressure_ok = true;
-    //   } else {
-    //     printf("Fail reading pressure\r\n");
-    //     printf("pressure not ok\r\n");
-    //   }
-    // }
 
     // Accepts serial commands
 #ifdef USE_FTDI_UART
@@ -229,6 +213,26 @@ int _write (int fd, const void *buf, size_t count)
   }
 
   return count;
+}
+
+inline void print_config() {
+  ssd1306_Fill(Black);
+  struct uwbConfig_s* uwbConfig = uwbGetConfig();
+  uint8_t device_adress = uwbConfig->address[0];
+
+  wchar_t buffer[12];   
+  wchar_t wmode_str[16];
+  wchar_t pos[20]; 
+
+  swprintf(buffer, 12, L"Адрес: 0x%d\n", device_adress); 
+  swprintf(wmode_str, 16, L"%s", uwbAlgorithmName(uwbConfig->mode));
+  swprintf(pos, 20, L"%04.1f %04.1f %04.1f", uwbConfig->position[0], uwbConfig->position[1], uwbConfig->position[2]); 
+  ssd1306_draw_string(0, 5, 128, 30, &Font, buffer, White); 
+  ssd1306_DrawLine(0, 24, 128, 24, White);
+  ssd1306_DrawLine(0, 25, 128, 25, White);
+  ssd1306_draw_string(0, 30, 128, 30, &Font, wmode_str, White); 
+  ssd1306_draw_string(3, 50, 128, 30, &Font, pos, White);
+  ssd1306_UpdateScreen(&hi2c1);
 }
 
 static void handleMenuMain(char ch, MenuState* menuState) {

@@ -85,6 +85,8 @@ target_sources(stm32cubemx INTERFACE
     ../../Core/Src/uwb_tdoa_anchor2.c
     ../../Core/Src/uwb_tdoa_anchor3.c
     ../../Core/Src/lpp.c
+    ../../Core/Src/ssd1306.c
+    ../../Core/Src/fonts.c
 
    # ../../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_i2c_ex.c
     ../../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_i2c.c
