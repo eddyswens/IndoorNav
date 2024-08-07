@@ -69,7 +69,6 @@ target_sources(stm32cubemx INTERFACE
     ../../Core/Src/usb_device.c
     ../../Core/Src/usbd_cdc_if.c
     ../../Core/Src/usbd_desc.c
-    # ../../Core/Src/lps25h.c
     ../../Core/Src/led.c
     ../../Core/Src/button.c
 

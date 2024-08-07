@@ -52,8 +52,8 @@ struct {
   {.algorithm = &uwbTwrAnchorAlgorithm, .name = "TWR Anchor"},
   {.algorithm = &uwbTwrTagAlgorithm,    .name = "TWR Tag"},
   {.algorithm = &uwbSnifferAlgorithm,   .name = "Sniffer"},
-  {.algorithm = &uwbTdoa2Algorithm,     .name = "TDoA Anchor V2"},
-  {.algorithm = &uwbTdoa3Algorithm,     .name = "TDoA Anchor V3"},
+  {.algorithm = &uwbTdoa2Algorithm,     .name = "TDoA Anchor v2"},
+  {.algorithm = &uwbTdoa3Algorithm,     .name = "TDoA Anchor v3"},
   {NULL, NULL},
 };
 

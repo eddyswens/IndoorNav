@@ -71,5 +71,6 @@ void ssd1306_draw_char(uint16_t x, uint16_t y, uint8_t ch, const uint8_t glyph_b
 void ssd1306_draw_string(uint16_t x, uint16_t y, uint16_t width, uint16_t height, const font_t *font, wchar_t *p, const uint16_t base_color);
 void ssd1306_SetCursor(uint8_t x, uint8_t y);
 void ssd1306_InvertColors(void);
+void ssd1306_Fill_Area(uint8_t x, uint8_t y, uint8_t w, uint8_t h, SSD1306_COLOR color);
 
 #endif  // _SSD1306_H

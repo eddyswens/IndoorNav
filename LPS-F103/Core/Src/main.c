@@ -46,7 +46,6 @@
 #include "usb_device.h"
 #include "usbcomm.h"
 
-#include "lps25h.h"
 #include "test_support.h"
 #include "production_test.h"
 
@@ -103,7 +102,12 @@ static void main_task(void *pvParameters) {
   ledOn(ledSync);
   ledOn(ledMode);
   buttonInit(buttonIdle);
-
+   if (ssd1306_Init(&hi2c1) != 0) {
+     printf("TEST\t: Problem with SSD1306!\r\n");
+   }
+  ssd1306_GeoscanLogo();
+  ssd1306_UpdateScreen(&hi2c1);
+  ssd1306_Fill(Black);
   printf("\r\n\r\n====================\r\n");
 
 printf("SYSTEM\t: CPU-ID: ");
@@ -133,10 +137,7 @@ for (uint8_t i = 0; i < 3; ++i) {
     usbcommSetSystemStarted(true);
   }
 
-   if (ssd1306_Init(&hi2c1) != 0) {
-     printf("TEST\t: Problem with SSD1306!\r\n");
-   }
-     ssd1306_Fill(Black);
+
 
   // Printing UWB configuration
   struct uwbConfig_s * uwbConfig = uwbGetConfig();
@@ -215,23 +216,30 @@ int _write (int fd, const void *buf, size_t count)
   return count;
 }
 
-inline void print_config() {
-  ssd1306_Fill(Black);
-  struct uwbConfig_s* uwbConfig = uwbGetConfig();
-  uint8_t device_adress = uwbConfig->address[0];
+inline void print_config()
+{
+   static struct uwbConfig_s* cached_config = NULL; 
+  if (cached_config == NULL) 
+  { 
+    cached_config = uwbGetConfig();
+  }
+  ssd1306_Fill_Area(0, 0, 128, 47,Black);
 
-  wchar_t buffer[12];   
+ uint8_t device_adress = cached_config->address[0];
+  wchar_t adress[10];   
   wchar_t wmode_str[16];
   wchar_t pos[20]; 
 
-  swprintf(buffer, 12, L"Адрес: 0x%d\n", device_adress); 
-  swprintf(wmode_str, 16, L"%s", uwbAlgorithmName(uwbConfig->mode));
-  swprintf(pos, 20, L"%04.1f %04.1f %04.1f", uwbConfig->position[0], uwbConfig->position[1], uwbConfig->position[2]); 
-  ssd1306_draw_string(0, 5, 128, 30, &Font, buffer, White); 
-  ssd1306_DrawLine(0, 24, 128, 24, White);
-  ssd1306_DrawLine(0, 25, 128, 25, White);
-  ssd1306_draw_string(0, 30, 128, 30, &Font, wmode_str, White); 
-  ssd1306_draw_string(3, 50, 128, 30, &Font, pos, White);
+  swprintf(adress, 12, L"Адрес: 0x%d\n", device_adress); 
+  swprintf(wmode_str, 16, L"%s", uwbAlgorithmName(cached_config->mode));
+  swprintf(pos, 20, L"%04.1f %04.1f %04.1f", cached_config->position[0], cached_config->position[1], cached_config->position[2]); 
+  ssd1306_draw_string(0, 0, 128, 30, &Font, adress, White); 
+  ssd1306_draw_string(0, 17, 128, 30, &Font, wmode_str, White); 
+  ssd1306_draw_string(3, 34, 128, 30, &Font, pos, White);
+   ssd1306_DrawLine(0, 14, 128, 14, White);
+   ssd1306_DrawLine(0, 31, 128, 31, White);
+   ssd1306_DrawLine(0, 47, 128, 47, White);
+   ssd1306_DrawLine(0, 64, 128, 64, White);
   ssd1306_UpdateScreen(&hi2c1);
 }
 
@@ -620,7 +628,7 @@ static StackType_t ucMainStack[2*configMINIMAL_STACK_SIZE];
 
 int main() {
   // Reset of all peripherals, Initializes the Flash interface and the Systick.
-    HAL_Init();
+   HAL_Init();
  
   // Configure the system clock
   SystemClock_Config();

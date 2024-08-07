@@ -24,7 +24,7 @@
  */
 #include <stm32f1xx_hal.h>
 #include <stm32f1xx_hal_gpio.h>
-
+#include "ssd1306.h"
 #include "led.h"
 
 typedef struct {
@@ -49,11 +49,23 @@ void ledInit(void) {
 static inline void setLed(led_e led, bool value)
 {
   HAL_GPIO_WritePin(leds_revc[led].port, leds_revc[led].pin, value?GPIO_PIN_SET:GPIO_PIN_RESET);
+    switch (led) {
+    case ledRanging:
+        ssd1306_draw_string(0, 49, 128, 30, &Font, L"Ranging", value?White:Black);
+        break;
+    case ledMode:
+       // ssd1306_draw_string(0, 49, 128, 30, &Font, L"Mode", value?White:Black);
+        break;
+    case ledSync:
+        ssd1306_draw_string(0, 49, 128, 30, &Font, L"Sync", value?White:Black);
+        break;
+  }
 }
 
 void ledOn(led_e led) {
   isBlinking[led] = false;
   setLed(led, true);
+  
 }
 
 void ledOff(led_e led) {

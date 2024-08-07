@@ -263,8 +263,7 @@ static uint32_t twrTagOnEvent(dwDevice_t *dev, uwbEvent_t event)
 static void twrTagInit(uwbConfig_t * newconfig, dwDevice_t *dev)
 {
   // Set the LED for anchor mode
-  ledOn(ledMode);
-
+  //ledOn(ledMode);
   config = *newconfig;
 
   // Initialize the packet in the TX buffer

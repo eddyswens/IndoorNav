@@ -85,7 +85,8 @@ static uint32_t twrAnchorOnEvent(dwDevice_t *dev, uwbEvent_t event)
 static void twrAnchorInit(uwbConfig_t * newconfig, dwDevice_t *dev)
 {
   // Set the LED for anchor mode
-  ledBlink(ledMode, false);
+  //ledBlink(ledMode, false);
+  
 }
 
 uwbAlgorithm_t uwbSnifferAlgorithm = {

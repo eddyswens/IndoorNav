@@ -93,6 +93,33 @@ void ssd1306_Fill(SSD1306_COLOR color)
     }
 }
 
+void ssd1306_Fill_Area(uint8_t x, uint8_t y, uint8_t w, uint8_t h, SSD1306_COLOR color) {
+  // Проверка корректности координат
+  	uint8_t i;
+
+	/* Check input parameters */
+	if (
+		x >= SSD1306_WIDTH ||
+		y >= SSD1306_HEIGHT
+	) {
+		/* Return error */
+		return;
+	}
+
+	/* Check width and height */
+	if ((x + w) >= SSD1306_WIDTH) {
+		w = SSD1306_WIDTH - x;
+	}
+	if ((y + h) >= SSD1306_HEIGHT) {
+		h = SSD1306_HEIGHT - y;
+	}
+
+	/* Draw lines */
+	for (i = 0; i <= h; i++) {
+		/* Draw lines */
+		ssd1306_DrawLine(x, y + i, x + w, y + i, color);
+	}
+}
 //
 //  Write the screenbuffer with changed to the screen
 //
@@ -282,6 +309,15 @@ void ssd1306_DrawLine(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, SSD130
 			y0 += sy;
 		}
 	}
+}
+
+void ssd1306_GeoscanLogo(void)
+{
+   ssd1306_Fill(Black);
+ssd1306_DrawLine(31, 63, 57, 1, White); 
+ssd1306_DrawLine(58, 0, 89, 63, White); 
+ssd1306_DrawLine(59, 53, 30, 63, White); 
+ssd1306_DrawLine(59, 53, 89, 63, White); 
 }
 //
 //  Invert background/foreground colors
