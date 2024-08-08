@@ -452,6 +452,17 @@ static void handleButton(void) {
   ButtonEvent be = buttonGetState();
 
   if (be == buttonShortPress) {
+    static struct uwbConfig_s *config = NULL;
+    if (config == NULL)
+    {
+      config = uwbGetConfig();
+    }
+    uint8_t new_mode = config->mode + 1 ;
+    if (new_mode > 4) 
+    {
+      new_mode = 0;
+    }
+    changeMode(new_mode);
     ledBlink(ledRanging, true);
     // TODO: Implement and remove ledblink
   }  else if (be == buttonLongPress) {
