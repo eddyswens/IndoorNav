@@ -90,6 +90,13 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+/*Configure GPIO pin : PC13,  - USER BUTTON BLUE*/
+GPIO_InitStruct.Pin = GPIO_PIN_13;
+GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+GPIO_InitStruct.Pull = GPIO_NOPULL;
+GPIO_InitStruct.Speed = GPIO_SPEED_LOW;
+HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 }
 
 /* USER CODE BEGIN 2 */

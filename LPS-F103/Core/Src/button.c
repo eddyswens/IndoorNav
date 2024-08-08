@@ -29,7 +29,7 @@ static ButtonEvent state;
 
 static bool buttonRead(void)
 {
-  return (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_RESET);
+  return (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_RESET);
 }
 
 void buttonInit(ButtonEvent initialEvent)

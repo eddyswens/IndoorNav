@@ -23,8 +23,8 @@
 #ifndef __BUTTON_H__
 #define __BUTTON_H__
 
-#define BUTTON_PRESSED 0UL
-#define BUTTON_RELEASED 1UL
+#define BUTTON_PRESSED 1UL
+#define BUTTON_RELEASED 0UL
 
 #define BUTTON_LONGPRESS_TICK 1000
 
