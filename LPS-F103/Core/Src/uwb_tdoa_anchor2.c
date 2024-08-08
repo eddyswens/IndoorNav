@@ -90,7 +90,7 @@
 #define TS_TX_SIZE 4
 
 // Useful constants
-static const uint8_t base_address[] = {0,0,0,0,0,0,0xcf,0xbc};
+static const uint8_t base_address[] = {0,0,0,0,0,0,0xec,0xdc};
 
 // FSM states
 enum state_e {

@@ -37,7 +37,7 @@
 #include "dwOps.h"
 #include "mac.h"
 
-static uint8_t base_address[] = {0,0,0,0,0,0,0xcf,0xbc};
+static uint8_t base_address[] = {0,0,0,0,0,0,0xec,0xdc};
 
 // The four packets for ranging
 #define POLL 0x01   // Poll is initiated by the tag

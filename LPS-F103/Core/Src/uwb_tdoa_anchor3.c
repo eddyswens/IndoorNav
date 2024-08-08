@@ -115,7 +115,7 @@ The implementation must handle
 #define DISTANCE_VALIDITY_PERIOD M2T(2 * 1000);
 
 // Useful constants
-static const uint8_t base_address[] = {0,0,0,0,0,0,0xcf,0xbc};
+static const uint8_t base_address[] = {0,0,0,0,0,0,0xec,0xdc};
 
 // Anchor context
 typedef struct {

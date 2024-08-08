@@ -39,7 +39,7 @@
 #include "dwOps.h"
 #include "mac.h"
 
-uint8_t base_address[] = {0,0,0,0,0,0,0xcf,0xbc};
+uint8_t base_address[] = {0,0,0,0,0,0,0xec,0xdc};
 
 // System configuration
 static struct uwbConfig_s config;

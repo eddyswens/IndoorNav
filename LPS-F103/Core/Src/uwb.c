@@ -66,7 +66,7 @@ static dwDevice_t *dwm = &dwm_device;
 
 // System configuration
 static struct uwbConfig_s config = {
-  address: {0,0,0,0,0,0,0xcf,0xbc},
+  address: {0,0,0,0,0,0,0xec,0xdc},
 };
 
 static uint32_t timeout;
