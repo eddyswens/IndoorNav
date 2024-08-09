@@ -62,6 +62,7 @@
 //   return ch;
 // }
  uint32_t uid[3];
+ static bool modeChanged = false, addressChanged = false; 
  
 static void restConfig();
 static void changeAddress(uint8_t addr);
@@ -226,12 +227,12 @@ inline void print_config()
   ssd1306_Fill_Area(0, 0, 128, 47,Black);
 
  uint8_t device_adress = cached_config->address[0];
-  wchar_t adress[10];   
+  wchar_t adress[13];   
   wchar_t wmode_str[16];
   wchar_t pos[20]; 
 
-  swprintf(adress, 12, L"Адрес: 0x%d\n", device_adress); 
-  swprintf(wmode_str, 16, L"%s", uwbAlgorithmName(cached_config->mode));
+  swprintf(adress, 13, L"Адрес: 0x%X%s\n", device_adress, addressChanged ? L"!" : L""); 
+  swprintf(wmode_str, 16, L"%s%s", uwbAlgorithmName(cached_config->mode), modeChanged ? L"!" : L"");
   swprintf(pos, 20, L"%04.1f %04.1f %04.1f", cached_config->position[0], cached_config->position[1], cached_config->position[2]); 
   ssd1306_draw_string(0, 0, 128, 30, &Font, adress, White); 
   ssd1306_draw_string(0, 17, 128, 30, &Font, wmode_str, White); 
@@ -240,7 +241,7 @@ inline void print_config()
    ssd1306_DrawLine(0, 31, 128, 31, White);
    ssd1306_DrawLine(0, 47, 128, 47, White);
    ssd1306_DrawLine(0, 64, 128, 64, White);
-  ssd1306_UpdateScreen(&hi2c1);
+   ssd1306_UpdateScreen(&hi2c1);
 }
 
 static void handleMenuMain(char ch, MenuState* menuState) {
@@ -450,13 +451,12 @@ static void handleSerialInput(char ch) {
 
 static void handleButton(void) {
   ButtonEvent be = buttonGetState();
-
-  if (be == buttonShortPress) {
-    static struct uwbConfig_s *config = NULL;
-    if (config == NULL)
+   static struct uwbConfig_s *config = NULL;
+     if (config == NULL)
     {
       config = uwbGetConfig();
     }
+  if (be == buttonShortPress) {
     uint8_t new_mode = config->mode + 1 ;
     if (new_mode > 4) 
     {
@@ -464,8 +464,16 @@ static void handleButton(void) {
     }
     changeMode(new_mode);
     ledBlink(ledRanging, true);
+     modeChanged = true;
     // TODO: Implement and remove ledblink
   }  else if (be == buttonLongPress) {
+    uint8_t new_address = config->address[0] + 1 ;
+    if (new_address > 255) 
+    {
+      new_address = 0;
+    }
+    changeAddress(new_address);
+    addressChanged = true;
     ledBlink(ledSync, true);
     // TODO: Implement and remove ledblink
   }
