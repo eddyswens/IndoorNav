@@ -58,7 +58,7 @@
 #include "cfg.h"
 #include "lpp.h"
 
-#define debug(...) printf(__VA_ARGS__)
+#define debug(...) // printf(__VA_ARGS__)
 
 // Still using modulo 2 calculation for slots
 // TODO: If A0 is the TDMA master it could transmit slots parameters and frame
@@ -106,21 +106,22 @@ enum slotState_e {
 
 // This context struct contains all the requied global values of the algorithm
 static struct ctx_s {
-  int anchorId;
-  enum state_e state;
-  enum slotState_e slotState;
+  int anchorId;  // Номер анкера
+  enum state_e state;  // Состояние
+  enum slotState_e slotState;  // Состояние временного слота????
 
   // Current and next TDMA slot
-  int slot;
-  int nextSlot;
+  int slot;  // Текущий слот
+  int nextSlot;  // Следующий слот
 
   // Current packet id and tx timestamps
-  uint8_t pid;
+  uint8_t pid;  // Айди пакета
 
   // TDMA start of frame in local clock
-  dwTime_t tdmaFrameStart;
+  dwTime_t tdmaFrameStart;  // Начало кадра в локальном времени
 
   // list of timestamps and ids for last frame.
+  // Список временных штампов и айдишников для последнего кадра
   uint8_t packetIds[NSLOTS];
   uint32_t rxTimestamps[NSLOTS];
   uint32_t txTimestamps[NSLOTS];

@@ -186,10 +186,10 @@ for (uint8_t i = 0; i < 3; ++i) {
 
     // Accepts serial commands
 #ifdef USE_FTDI_UART
-    if (HAL_UART_Receive(&huart2, (uint8_t *)&ch, 1, 0) == HAL_OK)
+        if (HAL_UART_Receive(&huart2, (uint8_t *)&ch, 1, 0) == HAL_OK)
     {
 #else
-    if(usbcommRead(&ch, 1)) {
+        if (usbcommRead(&ch, 1)) {
 #endif
       handleSerialInput(ch);
     }
