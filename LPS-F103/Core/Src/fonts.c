@@ -796,7 +796,7 @@ const uint8_t Font_bitmap[] = {
 
 const font_info Font_dsc[] = {
   {.bitmap_index = 0, .adv_w = 90, .box_w = 1, .box_h = 1, .ofs_x = 0, .ofs_y = 0},
-    {.bitmap_index = 1, .adv_w = 49, .box_w = 2, .box_h = 9, .ofs_x = 1, .ofs_y = 0},
+    {.bitmap_index = 1, .adv_w = 49, .box_w = 2, .box_h = 9, .ofs_x = 2, .ofs_y = 0},
     {.bitmap_index = 4, .adv_w = 105, .box_w = 5, .box_h = 4, .ofs_x = 1, .ofs_y = 6},
     {.bitmap_index = 7, .adv_w = 148, .box_w = 9, .box_h = 9, .ofs_x = 1, .ofs_y = 0},
     {.bitmap_index = 18, .adv_w = 162, .box_w = 9, .box_h = 12, .ofs_x = 1, .ofs_y = -1},
@@ -812,7 +812,7 @@ const font_info Font_dsc[] = {
     {.bitmap_index = 83, .adv_w = 56, .box_w = 2, .box_h = 1, .ofs_x = 1, .ofs_y = 0},
     {.bitmap_index = 84, .adv_w = 149, .box_w = 9, .box_h = 9, .ofs_x = 0, .ofs_y = 0},
     {.bitmap_index = 95, .adv_w = 177, .box_w = 10, .box_h = 9, .ofs_x = 1, .ofs_y = 0},
-    {.bitmap_index = 107, .adv_w = 128, .box_w = 7, .box_h = 9, .ofs_x = 1, .ofs_y = 0},
+    {.bitmap_index = 107, .adv_w = 122, .box_w = 7, .box_h = 9, .ofs_x = 1, .ofs_y = 0},
     {.bitmap_index = 115, .adv_w = 171, .box_w = 9, .box_h = 9, .ofs_x = 1, .ofs_y = 0},
     {.bitmap_index = 126, .adv_w = 171, .box_w = 9, .box_h = 9, .ofs_x = 1, .ofs_y = 0},
     {.bitmap_index = 137, .adv_w = 177, .box_w = 10, .box_h = 9, .ofs_x = 0, .ofs_y = 0},
@@ -877,7 +877,7 @@ const font_info Font_dsc[] = {
     {.bitmap_index = 686, .adv_w = 158, .box_w = 8, .box_h = 8, .ofs_x = 1, .ofs_y = 0},
     {.bitmap_index = 694, .adv_w = 134, .box_w = 8, .box_h = 8, .ofs_x = 1, .ofs_y = 0},
     {.bitmap_index = 702, .adv_w = 158, .box_w = 9, .box_h = 10, .ofs_x = 1, .ofs_y = -2},
-    {.bitmap_index = 714, .adv_w = 140, .box_w = 9, .box_h = 8, .ofs_x = 1, .ofs_y = 0},
+    {.bitmap_index = 714, .adv_w = 150, .box_w = 9, .box_h = 8, .ofs_x = 1, .ofs_y = 0},
     {.bitmap_index = 723, .adv_w = 141, .box_w = 8, .box_h = 8, .ofs_x = 1, .ofs_y = 0},
     {.bitmap_index = 731, .adv_w = 137, .box_w = 8, .box_h = 8, .ofs_x = 1, .ofs_y = 0},
     {.bitmap_index = 739, .adv_w = 149, .box_w = 9, .box_h = 8, .ofs_x = 0, .ofs_y = 0},
