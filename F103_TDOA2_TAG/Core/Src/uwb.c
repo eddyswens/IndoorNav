@@ -1,15 +1,170 @@
 #include "uwb.h"
 #include "spi.h"
+#include "gpio.h"
 #include "stm32f1xx.h"
 
+// #define debug(...) // printf(__VA_ARGS__)
+
+uwbAlgorithm_t uwbTwrTagAlgorithm;  // DEBUG
+uwbAlgorithm_t uwbTdoa2TagAlgorithm;  // DEBUG
+uwbAlgorithm_t uwbTdoa3TagAlgorithm;  // DEBUG
+
 extern SPI_HandleTypeDef hspi1;
+
+static lpsAlgoOptions_t algoOptions = {
+  // .userRequestedMode is the wanted algorithm, available as a parameter
+#if defined(CONFIG_ALGORITHM_TDOA2)
+  .userRequestedMode = lpsMode_TDoA2,
+#elif defined(CONFIG_ALGORITHM_TDOA3)
+  .userRequestedMode = lpsMode_TDoA3,
+#elif defined(CONFIG_ALGORITHM_TWR)
+  .userRequestedMode = lpsMode_TWR,
+#else
+  .userRequestedMode = lpsMode_auto,
+#endif
+  // .currentRangingMode is the currently running algorithm, available as a log
+  // lpsMode_auto is an impossible mode which forces initialization of the requested mode
+  // at startup
+  .currentRangingMode = lpsMode_auto,
+  .modeAutoSearchActive = true,
+  .modeAutoSearchDoInitialize = true,
+};
+
+struct {
+  uwbAlgorithm_t *algorithm;
+  char *name;
+} algorithmsList[LPS_NUMBER_OF_ALGORITHMS + 1] = {
+  [lpsMode_TWR] = {.algorithm = &uwbTwrTagAlgorithm, .name="TWR"},
+  [lpsMode_TDoA2] = {.algorithm = &uwbTdoa2TagAlgorithm, .name="TDoA2"},
+  [lpsMode_TDoA3] = {.algorithm = &uwbTdoa3TagAlgorithm, .name="TDoA3"},
+};
+
+static uwbAlgorithm_t *algorithm = &uwbTdoa2TagAlgorithm;  // DEBUG
+// #if defined(CONFIG_ALGORITHM_TDOA2)
+// static uwbAlgorithm_t *algorithm = &uwbTdoa2TagAlgorithm;
+// #elif defined(CONFIG_ALGORITHM_TDOA3)
+// static uwbAlgorithm_t *algorithm = &uwbTdoa3TagAlgorithm;
+// #else
+// static uwbAlgorithm_t *algorithm = &uwbTwrTagAlgorithm;
+// #endif
 
 static bool isInit = false;
 static dwDevice_t dwm_device;
 static dwDevice_t *dwm = &dwm_device;
+static bool eventsToHandle = false;
+
+static uint32_t timeout;
 
 uint16_t alignedBuffer[64];
 
+static void txCallback(dwDevice_t *dev)
+{
+    timeout = algorithm->onEvent(dev, eventPacketSent);
+}
+
+static void rxCallback(dwDevice_t *dev)
+{
+    timeout = algorithm->onEvent(dev, eventPacketReceived);
+}
+
+static void rxTimeoutCallback(dwDevice_t *dev)
+{
+    timeout = algorithm->onEvent(dev, eventReceiveTimeout);
+}
+
+static void rxFailedCallback(dwDevice_t *dev)
+{
+    timeout = algorithm->onEvent(dev, eventReceiveFailed);
+}
+
+static bool switchToMode(const lpsMode_t newMode) {
+  bool result = false;
+
+  if (lpsMode_auto != newMode && newMode <= LPS_NUMBER_OF_ALGORITHMS) {
+    algoOptions.currentRangingMode = newMode;
+    algorithm = algorithmsList[algoOptions.currentRangingMode].algorithm;
+
+    algorithm->init(dwm);
+    timeout = algorithm->onEvent(dwm, eventTimeout);
+
+    result = true;
+  }
+
+  return result;
+}
+
+static void autoModeSearchTryMode(const lpsMode_t newMode, const uint32_t now) {
+  // Set up next time to check
+  algoOptions.nextSwitchTick = now + LPS_AUTO_MODE_SWITCH_PERIOD;
+  switchToMode(newMode);
+}
+
+static lpsMode_t autoModeSearchGetNextMode() {
+  lpsMode_t newMode = algoOptions.currentRangingMode + 1;
+  if (newMode > LPS_NUMBER_OF_ALGORITHMS) {
+    newMode = lpsMode_TWR;
+  }
+  return newMode;
+}
+
+static void processAutoModeSwitching() {
+  uint32_t now = HAL_GetTick();
+
+  if (algoOptions.modeAutoSearchActive) {
+    if (algoOptions.modeAutoSearchDoInitialize) {
+      autoModeSearchTryMode(lpsMode_TDoA2, now);
+      algoOptions.modeAutoSearchDoInitialize = false;
+    } else {
+      if (now > algoOptions.nextSwitchTick) {
+        if (algorithm->isRangingOk()) {
+          // We have found an algorithm, stop searching and lock to it.
+          algoOptions.modeAutoSearchActive = false;
+        //   DEBUG_PRINT("Automatic mode: detected %s\n", algorithmsList[algoOptions.currentRangingMode].name);
+        } else {
+          lpsMode_t newMode = autoModeSearchGetNextMode();
+          autoModeSearchTryMode(newMode, now);
+        }
+      }
+    }
+  }
+}
+
+static void resetAutoSearchMode() {
+  algoOptions.modeAutoSearchActive = true;
+  algoOptions.modeAutoSearchDoInitialize = true;
+}
+
+static void handleModeSwitch() {
+  if (algoOptions.userRequestedMode == lpsMode_auto) {
+    processAutoModeSwitching();
+  } else {
+    resetAutoSearchMode();
+    if (algoOptions.userRequestedMode != algoOptions.currentRangingMode) {
+      if (switchToMode(algoOptions.userRequestedMode)) {
+        // DEBUG_PRINT("Switching to mode %s\n", algorithmsList[algoOptions.currentRangingMode].name);
+      }
+    }
+  }
+}
+
+static void uwbTask()
+{
+    handleModeSwitch();
+    if (eventsToHandle) {
+        do{
+            dwHandleInterrupt(dwm);
+        } while (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_IRQ) != 0);
+    } else {
+        timeout = algorithm->onEvent(dwm, eventTimeout);
+    }
+}
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+    if (GPIO_Pin == GPIO_PIN_IRQ) eventsToHandle = true;
+}
+
+/************ Low level ops for libdw **********/
 static void spiWrite(dwDevice_t *dev, const void *header, size_t headerLength,
                      const void *data, size_t dataLength)
 {
@@ -97,22 +252,20 @@ static dwOps_t dwOps = {
     .delayms = delayms,
 };
 
-/*********** Deck driver initialization ***************/
+/*********** DWM driver initialization ***************/
 
 static void dwm1000Init()
 {
+    printf("Start initing\r\n");
     NVIC_EnableIRQ(DWM_IRQn);
 
     MX_SPI1_Init();
-    // Init pins
-    pinMode(CS_PIN, OUTPUT);
-    pinMode(GPIO_PIN_RESET, OUTPUT);
-    pinMode(GPIO_PIN_IRQ, INPUT);
+    MX_GPIO_Init();
 
     // Reset the DW1000 chip
-    digitalWrite(GPIO_PIN_RESET, 0);
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_RESET, RESET);
     HAL_Delay(10);
-    digitalWrite(GPIO_PIN_RESET, 1);
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_RESET, SET);
     HAL_Delay(10);
 
     // Initialize the driver
@@ -167,4 +320,14 @@ static void dwm1000Init()
     //             LPS_DECK_TASK_PRI, &uwbTaskHandle);
 
     isInit = true;
+}
+
+void dwStart()
+{
+    dwm1000Init();
+}
+
+void dwLoop()
+{
+   uwbTask(); 
 }

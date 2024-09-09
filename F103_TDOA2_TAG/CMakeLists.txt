@@ -52,6 +52,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     Drivers/libdw1000/src/libdw1000Spi.c
 
     Core/Src/uwb.c
+    # Core/Src/lpsTdoa2Tag.c
 )
 
 # Add include paths

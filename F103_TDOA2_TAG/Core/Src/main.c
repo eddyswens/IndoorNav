@@ -1,10 +1,10 @@
-
-
 #include "main.h"
-#include "spi.h"
 #include "usart.h"
 #include "gpio.h"
 
+#include "uwb.h"
+
+extern UART_HandleTypeDef huart2;
 
 void SystemClock_Config(void);
 
@@ -13,19 +13,13 @@ int main(void)
   HAL_Init();
 
   SystemClock_Config();
+  MX_USART2_UART_Init();
+  dwStart();
 
-  MX_GPIO_Init();
-  MX_USART1_UART_Init();
-
-  while (1)
+      while (1)
   {
- 
+    dwLoop();
   }
-}
-
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-  
 }
 
   void SystemClock_Config(void)
@@ -60,6 +54,24 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
       Error_Handler();
     }
   }
+
+
+  /* Function required to use "printf" to print on serial console */
+  int _write (int fd, const void *buf, size_t count)
+  {
+    // stdout
+    if (fd == 1) {
+      HAL_UART_Transmit(&huart2, (uint8_t *)buf, count, HAL_MAX_DELAY);
+    }
+
+    // stderr
+    if (fd == 2) {
+      HAL_UART_Transmit(&huart2, (uint8_t *)buf, count, HAL_MAX_DELAY);
+    }
+
+    return count;
+  } 
+  
 
   /**
    * @brief  Period elapsed callback in non blocking mode

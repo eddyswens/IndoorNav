@@ -4,6 +4,8 @@
         "stm32f1xx.h": "c",
         "uwb.h": "c",
         "spi.h": "c",
-        "libdw1000.h": "c"
+        "libdw1000.h": "c",
+        "main.h": "c",
+        "cstdio": "c"
     }
 }
