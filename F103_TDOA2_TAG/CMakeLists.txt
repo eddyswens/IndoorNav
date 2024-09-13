@@ -52,13 +52,22 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     Drivers/libdw1000/src/libdw1000Spi.c
 
     Core/Src/uwb.c
-    # Core/Src/lpsTdoa2Tag.c
+    Core/Src/lpsTdoa2Tag.c
+
+    Core/Src/tdoa/tdoaEngine.c
+    Core/Src/tdoa/tdoaEngineInstance.c
+    Core/Src/tdoa/tdoaStorage.c
+
+    Core/Src/clockCorrection/clockCorrectionEngine.c
+
 )
 
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined include paths
     Drivers/libdw1000/inc
+    Core/Inc/tdoa
+    Core/Inc/clockCorrection
 )
 
 # Add project symbols (macros)

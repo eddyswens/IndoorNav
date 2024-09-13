@@ -6,6 +6,14 @@
         "spi.h": "c",
         "libdw1000.h": "c",
         "main.h": "c",
-        "cstdio": "c"
-    }
+        "cstdio": "c",
+        "measurement_types.h": "c",
+        "tdoaengineinstance.h": "c",
+        "tdoaengine.h": "c",
+        "tdoastorage.h": "c",
+        "stdio.h": "c",
+        "lpstdoa2tag.h": "c",
+        "libdw1000spi.h": "c"
+    },
+    "cortex-debug.variableUseNaturalFormat": false
 }

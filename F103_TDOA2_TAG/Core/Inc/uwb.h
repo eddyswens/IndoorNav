@@ -7,10 +7,16 @@ extern "C"
 #endif
 
 #include "libdw1000.h"
+#include "measurement_types.h"
+
+#define SPEED_OF_LIGHT (299792458.0)
+
+// Timestamp counter frequency
+#define LOCODECK_TS_FREQ (499.2e6 * 128)
 
 #define DEFAULT_RX_TIMEOUT 10000
 #define LPS_NUMBER_OF_ALGORITHMS 3
-#define LPS_AUTO_MODE_SWITCH_PERIOD 1000  // should be 1 to 1 ms to ticks
+#define LPS_AUTO_MODE_SWITCH_PERIOD 1100  // should be 1 to 1 ms to ticks  // 1000
 
 #define LOW 0x0
 #define HIGH 0x1
@@ -26,15 +32,7 @@ extern "C"
 
 #define DWM_IRQn EXTI9_5_IRQn
 
-/* x,y,z vector */
-struct vec3_s {
-  uint32_t timestamp; // Timestamp when the data was computed
 
-  float x;
-  float y;
-  float z;
-};
-typedef struct vec3_s point_t;
 
 typedef enum uwbEvent_e {
   eventTimeout,
@@ -43,6 +41,8 @@ typedef enum uwbEvent_e {
   eventReceiveTimeout,
   eventReceiveFailed,
 } uwbEvent_t;
+
+typedef uint64_t locoAddress_t;
 
 typedef enum {
   lpsMode_auto = 0,
@@ -75,6 +75,34 @@ typedef struct uwbAlgorithm_s {
   uint8_t (*getAnchorIdList)(uint8_t unorderedAnchorList[], const int maxListSize);
   uint8_t (*getActiveAnchorIdList)(uint8_t unorderedAnchorList[], const int maxListSize);
 } uwbAlgorithm_t;
+
+#define MAX_TIMEOUT 0xffffffffUL  // Скорее всего, рудимент с ртоса
+
+// LPP Packet types and format
+#define LPP_HEADER_SHORT_PACKET 0xF0
+
+#define LPP_SHORT_ANCHORPOS 0x01
+
+typedef struct {
+  uint8_t dest;
+  uint8_t length;
+  uint8_t data[30];
+} lpsLppShortPacket_t;
+
+// Poll if there is a LPS short configuration packet to send
+// Return true if the packet data has been filled in shortPacket
+// Return false if no packet to send
+// Function to be used by the LPS algorithm
+bool lpsGetLppShort(lpsLppShortPacket_t *shortPacket);
+
+uint16_t locoDeckGetRangingState();
+void locoDeckSetRangingState(const uint16_t newState);
+
+struct lppShortAnchorPos_s {
+  float x;
+  float y;
+  float z;
+} __attribute__((packed));
 
 #ifdef __cplusplus
 }

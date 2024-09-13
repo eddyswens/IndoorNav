@@ -1,16 +1,16 @@
 #ifndef __LPS_TDOA2_TAG_H__
 #define __LPS_TDOA2_TAG_H__
 
-#include "locodeck.h"
+#include "uwb.h"
 #include "libdw1000.h"
 
 #include "mac.h"
 
-#include "autoconf.h"
+// #include "autoconf.h"
 
 extern uwbAlgorithm_t uwbTdoa2TagAlgorithm;
 
-#define LOCODECK_NR_OF_TDOA2_ANCHORS CONFIG_DECK_LOCO_NR_OF_ANCHORS
+#define LOCODECK_NR_OF_TDOA2_ANCHORS 8
 
 typedef struct {
   const locoAddress_t anchorAddress[LOCODECK_NR_OF_TDOA2_ANCHORS];

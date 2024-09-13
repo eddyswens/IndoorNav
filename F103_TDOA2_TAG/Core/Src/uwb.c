@@ -3,10 +3,15 @@
 #include "gpio.h"
 #include "stm32f1xx.h"
 
+#include "queue.h"
+
+#include "lpsTdoa2Tag.h"
+
 // #define debug(...) // printf(__VA_ARGS__)
+#define CONFIG_ALGORITHM_TDOA2
 
 uwbAlgorithm_t uwbTwrTagAlgorithm;  // DEBUG
-uwbAlgorithm_t uwbTdoa2TagAlgorithm;  // DEBUG
+// uwbAlgorithm_t uwbTdoa2TagAlgorithm;  // DEBUG
 uwbAlgorithm_t uwbTdoa3TagAlgorithm;  // DEBUG
 
 extern SPI_HandleTypeDef hspi1;
@@ -52,6 +57,7 @@ static bool isInit = false;
 static dwDevice_t dwm_device;
 static dwDevice_t *dwm = &dwm_device;
 static bool eventsToHandle = false;
+static Queue* lppShortQueue;
 
 static uint32_t timeout;
 
@@ -75,6 +81,33 @@ static void rxTimeoutCallback(dwDevice_t *dev)
 static void rxFailedCallback(dwDevice_t *dev)
 {
     timeout = algorithm->onEvent(dev, eventReceiveFailed);
+}
+
+bool locoDeckGetAnchorPosition(const uint8_t anchorId, point_t* position)  // NOT USED
+{
+  if (!isInit) {
+    return false;
+  }
+  bool result = algorithm->getAnchorPosition(anchorId, position);
+  return result;
+}
+
+uint8_t locoDeckGetAnchorIdList(uint8_t unorderedAnchorList[], const int maxListSize) // NOT USED
+{
+  if (!isInit) {
+    return 0;
+  }
+  uint8_t result = algorithm->getAnchorIdList(unorderedAnchorList, maxListSize);
+  return result;
+}
+
+uint8_t locoDeckGetActiveAnchorIdList(uint8_t unorderedAnchorList[], const int maxListSize) // NOT USED
+{
+  if (!isInit) {
+    return 0;
+  }
+  uint8_t result = algorithm->getActiveAnchorIdList(unorderedAnchorList, maxListSize);
+  return result;
 }
 
 static bool switchToMode(const lpsMode_t newMode) {
@@ -149,19 +182,49 @@ static void handleModeSwitch() {
 
 static void uwbTask()
 {
-    handleModeSwitch();
-    if (eventsToHandle) {
-        do{
-            dwHandleInterrupt(dwm);
-        } while (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_IRQ) != 0);
-    } else {
-        timeout = algorithm->onEvent(dwm, eventTimeout);
-    }
+  // switchToMode(lpsMode_TDoA3);
+  handleModeSwitch();
+  // dwReadSystemEventMaskRegister(dwm);
+  // dwReadSystemEventStatusRegister(dwm);
+  // printf("Tick is \r\n");
+  // printf("%u", HAL_GetTick());
+  printf("\r\n");
+
+  if (eventsToHandle) {
+      do{
+          dwHandleInterrupt(dwm);
+      } while (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_IRQ) != 0);
+      eventsToHandle = false;
+  } else {
+      timeout = algorithm->onEvent(dwm, eventTimeout);
+  }
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
     if (GPIO_Pin == GPIO_PIN_IRQ) eventsToHandle = true;
+}
+
+static lpsLppShortPacket_t lppShortPacket;
+
+bool lpsSendLppShort(uint8_t destId, void* data, size_t length)
+{
+  bool result = false;
+
+  if (isInit)
+  {
+    lppShortPacket.dest = destId;
+    lppShortPacket.length = length;
+    memcpy(lppShortPacket.data, data, length);
+    result = enqueue(lppShortQueue, &lppShortPacket);
+  }
+
+  return result;
+}
+
+bool lpsGetLppShort(lpsLppShortPacket_t* shortPacket)
+{
+  return dequeue(lppShortQueue, shortPacket);
 }
 
 /************ Low level ops for libdw **********/
@@ -318,8 +381,18 @@ static void dwm1000Init()
 
     // xTaskCreate(uwbTask, LPS_DECK_TASK_NAME, LPS_DECK_STACKSIZE, NULL,
     //             LPS_DECK_TASK_PRI, &uwbTaskHandle);
-
+    lppShortQueue = createQueue(10);
     isInit = true;
+}
+
+uint16_t locoDeckGetRangingState()
+{
+  return algoOptions.rangingState;
+}
+
+void locoDeckSetRangingState(const uint16_t newState)
+{
+  algoOptions.rangingState = newState;
 }
 
 void dwStart()
