@@ -4,7 +4,7 @@
 
 #include "uwb.h"
 
-extern UART_HandleTypeDef huart2;
+extern UART_HandleTypeDef huart1;
 
 void SystemClock_Config(void);
 
@@ -13,7 +13,7 @@ int main(void)
   HAL_Init();
 
   SystemClock_Config();
-  MX_USART2_UART_Init();
+  MX_USART1_UART_Init();
   dwStart();
 
       while (1)
@@ -61,12 +61,12 @@ int main(void)
   {
     // stdout
     if (fd == 1) {
-      HAL_UART_Transmit(&huart2, (uint8_t *)buf, count, HAL_MAX_DELAY);
+      HAL_UART_Transmit(&huart1, (uint8_t *)buf, count, HAL_MAX_DELAY);
     }
 
     // stderr
     if (fd == 2) {
-      HAL_UART_Transmit(&huart2, (uint8_t *)buf, count, HAL_MAX_DELAY);
+      HAL_UART_Transmit(&huart1, (uint8_t *)buf, count, HAL_MAX_DELAY);
     }
 
     return count;

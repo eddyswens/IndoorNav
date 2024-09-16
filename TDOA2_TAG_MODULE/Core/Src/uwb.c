@@ -182,18 +182,15 @@ static void handleModeSwitch() {
 
 static void uwbTask()
 {
-  // switchToMode(lpsMode_TDoA3);
   handleModeSwitch();
   // dwReadSystemEventMaskRegister(dwm);
   // dwReadSystemEventStatusRegister(dwm);
-  // printf("Tick is \r\n");
-  // printf("%u", HAL_GetTick());
-  printf("\r\n");
+  HAL_Delay(1);
 
   if (eventsToHandle) {
       do{
           dwHandleInterrupt(dwm);
-      } while (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_IRQ) != 0);
+      } while (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_IRQ) != 0);
       eventsToHandle = false;
   } else {
       timeout = algorithm->onEvent(dwm, eventTimeout);
@@ -326,9 +323,9 @@ static void dwm1000Init()
     MX_GPIO_Init();
 
     // Reset the DW1000 chip
-    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_RESET, RESET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_RST, SET);
     HAL_Delay(10);
-    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_RESET, SET);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_RST, RESET);
     HAL_Delay(10);
 
     // Initialize the driver

@@ -16,7 +16,7 @@ extern "C"
 
 #define DEFAULT_RX_TIMEOUT 10000
 #define LPS_NUMBER_OF_ALGORITHMS 3
-#define LPS_AUTO_MODE_SWITCH_PERIOD 1100  // should be 1 to 1 ms to ticks  // 1000
+#define LPS_AUTO_MODE_SWITCH_PERIOD 1000  // should be 1 to 1 ms to ticks  // 1000
 
 #define LOW 0x0
 #define HIGH 0x1
@@ -27,8 +27,8 @@ extern "C"
 #define INPUT_PULLDOWN 0x3
 
 #define CS_PIN GPIO_PIN_4  // PA4
-#define GPIO_PIN_IRQ GPIO_PIN_9  // PA9
-#define GPIO_PIN_RESET GPIO_PIN_7  // PC7
+#define GPIO_PIN_IRQ GPIO_PIN_9  // PB9
+#define GPIO_PIN_RST GPIO_PIN_8  // PB8
 
 #define DWM_IRQn EXTI9_5_IRQn
 
