@@ -79,11 +79,13 @@ static void printPowerHelp();
 static void help();
 // static void bootload(void);
 
-typedef enum {mainMenu, modeMenu, idMenu, radioMenu, powerMenu} Menu_t;
+typedef enum {mainMenu, modeMenu, idMenu, radioMenu, powerMenu, posMenu} Menu_t;
 typedef struct {
   bool configChanged;
   Menu_t currentMenu;
   unsigned int tempId;
+  // Добавлены переменные для хранения координат позиции
+  int posIndex; // Индекс текущей координаты (0 - X, 1 - Y, 2 - Z)
 } MenuState;
 
 static void main_task(void *pvParameters) {
@@ -299,6 +301,15 @@ static void handleMenuMain(char ch, MenuState* menuState) {
          menuState->currentMenu = powerMenu;
          menuState->configChanged = false;
          break;
+    // Добавлен обработчик для 'o'
+    case 'o':
+      printf("Enter anchor position (X Y Z):\r\n");
+      printf("X: ");
+      fflush(stdout);
+      menuState->currentMenu = posMenu;
+      menuState->configChanged = false;
+      menuState->posIndex = 0; 
+      break;
     case 'u':
       // bootload();
       break;
@@ -417,14 +428,77 @@ static void handleMenuPower(char ch, MenuState* menuState) {
   }
 }
 
+// Обработчик для режима ввода позиции
+static void handleMenuPos(char ch, MenuState* menuState) {
+  // Буфер для временного хранения числа
+  static char numBuffer[16] = {0};
+  static int numBufferIndex = 0;
+static float tempX = 0.0, tempY = 0.0, tempZ = 0.0;
+static int posIndex = 0; 
+  switch (ch) {
+    case '0':
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+    case '8':
+    case '9':
+    case '.':
+    case '-': // Добавьте обработку знака минус, если нужно
+      numBuffer[numBufferIndex++] = ch;
+      putchar(ch);
+      fflush(stdout);
+      break;
+    case ' ': // Разделитель между координатами
+    case '\n':
+    case '\r': 
+      if (numBufferIndex > 0) {
+        numBuffer[numBufferIndex] = '\0'; 
+        float value = atof(numBuffer);
+        switch (menuState->posIndex) {
+          case 0: tempX = value; printf("\r\nY: "); break;
+          case 1: tempY = value; printf("\r\nZ: "); break;
+          case 2: tempZ = value; 
+
+            // Запись координат в структуру uwbConfig
+            struct uwbConfig_s* uwbConfig = uwbGetConfig();
+            uwbConfig->position[0] = tempX;
+            uwbConfig->position[1] = tempY;
+            uwbConfig->position[2] = tempZ;
+            uwbConfig->positionEnabled = true;
+            
+          
+            // Сохранение изменений в EEPROM
+            cfgWriteFP32list(cfgAnchorPos, uwbConfig->position, 3);
+            menuState->configChanged = true; // Устанавливаем флаг, чтобы сообщить об изменении
+
+            printf("\r\nSetting anchor position to: %04.1f %04.1f %04.1f\r\n", tempX, tempY, tempZ); // Вывод после обновления всех координат
+
+
+            menuState->currentMenu = mainMenu;
+            break; 
+        }
+        
+        numBufferIndex = 0; // Очистить буфер 
+        menuState->posIndex++;
+        fflush(stdout);
+      }
+      break;
+  }
+}
+
 static void handleSerialInput(char ch) {
   static MenuState menuState = {
     .configChanged = true,
     .currentMenu = mainMenu,
     .tempId = 0,
+    .posIndex = 0 
   };
 
-  menuState.configChanged = true;
+ // menuState.configChanged = true;
 
   switch (menuState.currentMenu) {
     case mainMenu:
@@ -442,10 +516,15 @@ static void handleSerialInput(char ch) {
     case powerMenu:
       handleMenuPower(ch, &menuState);
       break;
+    case posMenu:
+      handleMenuPos(ch, &menuState); 
+      break;
   }
 
-  if (menuState.configChanged) {
+ // menuState.configChanged устанавливается в true только при изменении конфигурации
+  if (menuState.configChanged) { 
     printf("EEPROM configuration changed, restart for it to take effect!\r\n");
+    menuState.configChanged = false; // Сбрасываем флаг после вывода сообщения
   }
 }
 
@@ -635,6 +714,8 @@ static void help() {
   printf("m   - List and change mode\r\n");
   printf("r   - List and change UWB radio settings\r\n");
   printf("p   - change power mode\r\n");
+  // Добавлена информация о команде 'o'
+  printf("o   - set anchor position (X Y Z)\r\n"); 
   printf("d   - reset configuration\r\n");
   printf("u   - enter BSL (DFU mode)\r\n");
   printf("h   - This help\r\n");
