@@ -1,4 +1,4 @@
-# Install script for directory: /home/user/Show/IndoorShow/IndoorNav/F103_TDOA2_TAG/cmake/stm32cubemx
+# Install script for directory: /home/user/Show/IndoorShow/IndoorNav/TDOA2_TAG_MODULE/cmake/stm32cubemx
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

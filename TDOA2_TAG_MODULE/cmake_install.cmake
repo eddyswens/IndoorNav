@@ -1,4 +1,4 @@
-# Install script for directory: /home/user/Show/IndoorShow/IndoorNav/F103_TDOA2_TAG
+# Install script for directory: /home/user/Show/IndoorShow/IndoorNav/TDOA2_TAG_MODULE
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -39,7 +39,7 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/home/user/Show/IndoorShow/IndoorNav/F103_TDOA2_TAG/cmake/stm32cubemx/cmake_install.cmake")
+  include("/home/user/Show/IndoorShow/IndoorNav/TDOA2_TAG_MODULE/cmake/stm32cubemx/cmake_install.cmake")
 endif()
 
 if(CMAKE_INSTALL_COMPONENT)
@@ -50,5 +50,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/user/Show/IndoorShow/IndoorNav/F103_TDOA2_TAG/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/user/Show/IndoorShow/IndoorNav/TDOA2_TAG_MODULE/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

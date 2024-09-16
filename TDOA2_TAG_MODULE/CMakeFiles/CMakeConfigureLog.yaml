@@ -49,7 +49,7 @@ events:
       Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "CMakeCCompilerId.o"
       
       The C compiler identification is GNU, found in:
-        /home/user/Show/IndoorShow/IndoorNav/F103_TDOA2_TAG/CMakeFiles/3.28.1/CompilerIdC/CMakeCCompilerId.o
+        /home/user/Show/IndoorShow/IndoorNav/TDOA2_TAG_MODULE/CMakeFiles/3.28.1/CompilerIdC/CMakeCCompilerId.o
       
   -
     kind: "message-v1"
@@ -104,6 +104,6 @@ events:
       Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "CMakeCXXCompilerId.o"
       
       The CXX compiler identification is GNU, found in:
-        /home/user/Show/IndoorShow/IndoorNav/F103_TDOA2_TAG/CMakeFiles/3.28.1/CompilerIdCXX/CMakeCXXCompilerId.o
+        /home/user/Show/IndoorShow/IndoorNav/TDOA2_TAG_MODULE/CMakeFiles/3.28.1/CompilerIdCXX/CMakeCXXCompilerId.o
       
 ...
