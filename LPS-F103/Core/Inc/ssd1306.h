@@ -3,13 +3,6 @@
  * for Stm32 Uc and HAL-i2c lib's.
  *
  * To use this library with ssd1306 oled display you will need to customize the defines below.
- *
- * This library uses 2 extra files (fonts.c/h).
- * In this files are 3 different fonts you can use:
- *     - Font_7x10
- *     - Font_11x18
- *     - Font_16x26
- *
  */
 
 #ifndef _SSD1306_H

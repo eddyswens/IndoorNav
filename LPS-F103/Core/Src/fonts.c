@@ -1,4 +1,3 @@
-
 #include "fonts.h"
 
 const size_t CHAR_INDEX_ARRAY_SIZE = 161;
@@ -12,7 +11,7 @@ const font_t Font = {
 
 //Используемый алфавит: !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюя
 
-CharIndex charIndexArray[] = { //1 - для букв сверху, 0 - стандартная высота
+CharIndex charIndexArray[] = {
 		{32, 0}, // Space
 		    {33, 1}, // !
 		    {34, 2}, // "
