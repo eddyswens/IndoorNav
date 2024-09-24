@@ -75,14 +75,12 @@ target_sources(stm32cubemx INTERFACE
     ../../Core/Src/cfg.c
     ../../Core/Src/usbcomm.c
     ../../Core/Src/test_support.c
-    ../../Core/Src/production_test.c
 
     ../../Core/Src/uwb.c
-    ../../Core/Src/uwb_twr_anchor.c
-    ../../Core/Src/uwb_twr_tag.c
     ../../Core/Src/uwb_sniffer.c
     ../../Core/Src/uwb_tdoa_anchor2.c
     ../../Core/Src/uwb_tdoa_anchor3.c
+    ../../Core/Src/uwb_configurator.c
     ../../Core/Src/lpp.c
     ../../Core/Src/ssd1306.c
     ../../Core/Src/fonts.c

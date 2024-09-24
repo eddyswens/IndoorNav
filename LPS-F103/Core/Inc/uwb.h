@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "cfg.h"
+#include "mac.h"
 #include <libdw1000.h>
 #include <FreeRTOS.h>
 
@@ -25,11 +26,26 @@ typedef struct uwbConfig_s {
   bool longPreamble;
 } uwbConfig_t;
 
-#define MODE_ANCHOR 0
-#define MODE_TAG 1
-#define MODE_SNIFFER 2
-#define MODE_TDOA_ANCHOR2 3
-#define MODE_TDOA_ANCHOR3 4
+typedef struct uwbServiceFromSerial_s {
+  uint8_t action;
+  uint8_t destinationAddress;
+
+  float position[3];
+
+  uint8_t mode;
+
+  bool enableSmartPower;
+  bool forceTxPower;
+  uint32_t txPower;
+
+  bool enableLowBitrate;
+  bool enableLongPreamble;
+} uwbServiceFromSerial_t;
+
+#define MODE_SNIFFER 0
+#define MODE_TDOA_ANCHOR2 1
+#define MODE_TDOA_ANCHOR3 2
+#define MODE_CONFIGURATOR 3
 
 typedef enum uwbEvent_e {
   eventTimeout,
@@ -43,6 +59,7 @@ typedef enum uwbEvent_e {
 typedef struct uwbAlgorithm_s {
   void (*init)(uwbConfig_t * config, dwDevice_t *dev);
   uint32_t (*onEvent)(dwDevice_t *dev, uwbEvent_t event);
+  void (*sendService)(dwDevice_t *dev, uwbServiceFromSerial_t *dataToSend);
 } uwbAlgorithm_t;
 
 
@@ -55,5 +72,6 @@ char * uwbStrError();
 struct uwbConfig_s * uwbGetConfig();
 int uwbAlgorithmCount();
 char * uwbAlgorithmName(unsigned int id);
+void sendServiceData(uwbServiceFromSerial_t *newPacket);
 
 #endif //__UWB_H__

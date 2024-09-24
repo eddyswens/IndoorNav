@@ -11,23 +11,20 @@
 
 // Implemented UWB algoritm. The dummy one is at the end of this file.
 static uwbAlgorithm_t dummyAlgorithm;
-extern uwbAlgorithm_t uwbTwrAnchorAlgorithm;
-extern uwbAlgorithm_t uwbTwrTagAlgorithm;
 extern uwbAlgorithm_t uwbSnifferAlgorithm;
-extern uwbAlgorithm_t uwbTdoaAlgorithm;
 extern uwbAlgorithm_t uwbTdoa2Algorithm;
 extern uwbAlgorithm_t uwbTdoa3Algorithm;
+extern uwbAlgorithm_t uwbConfiguratorAlgorithm;
 static uwbAlgorithm_t *algorithm = &dummyAlgorithm;
 
 struct {
   uwbAlgorithm_t *algorithm;
   char *name;
 } availableAlgorithms[] = {
-  {.algorithm = &uwbTwrAnchorAlgorithm, .name = "TWR Anchor"},
-  {.algorithm = &uwbTwrTagAlgorithm,    .name = "TWR Tag"},
   {.algorithm = &uwbSnifferAlgorithm,   .name = "Sniffer"},
   {.algorithm = &uwbTdoa2Algorithm,     .name = "TDoA Anchor v2"},
   {.algorithm = &uwbTdoa3Algorithm,     .name = "TDoA Anchor v3"},
+  {.algorithm = &uwbConfiguratorAlgorithm,     .name = "USB Configurator"},
   {NULL, NULL},
 };
 
@@ -63,6 +60,10 @@ static void rxfailedcallback(dwDevice_t *dev) {
   timeout = algorithm->onEvent(dev, eventReceiveFailed);
 }
 
+void sendServiceData(uwbServiceFromSerial_t *newPacket)
+{
+  algorithm->sendService(dwm, newPacket);
+}
 
 void uwbInit()
 {
@@ -224,6 +225,11 @@ char * uwbStrError()
 struct uwbConfig_s * uwbGetConfig()
 {
   return &config;
+}
+
+uint8_t uwbGetCurrentMode()
+{
+  return config.mode;
 }
 
 /**** DWM1000 interrupt handling *****/

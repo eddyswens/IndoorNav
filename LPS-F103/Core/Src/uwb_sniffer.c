@@ -13,7 +13,7 @@
 #include "mac.h"
 
 
-static uint32_t twrAnchorOnEvent(dwDevice_t *dev, uwbEvent_t event)
+static uint32_t SnifferOnEvent(dwDevice_t *dev, uwbEvent_t event)
 {
   static dwTime_t arrival;
   static packet_t rxPacket;
@@ -56,7 +56,7 @@ static uint32_t twrAnchorOnEvent(dwDevice_t *dev, uwbEvent_t event)
   return MAX_TIMEOUT;
 }
 
-static void twrAnchorInit(uwbConfig_t * newconfig, dwDevice_t *dev)
+static void SnifferInit(uwbConfig_t * newconfig, dwDevice_t *dev)
 {
   // Set the LED for anchor mode
   //ledBlink(ledMode, false);
@@ -64,6 +64,6 @@ static void twrAnchorInit(uwbConfig_t * newconfig, dwDevice_t *dev)
 }
 
 uwbAlgorithm_t uwbSnifferAlgorithm = {
-  .init = twrAnchorInit,
-  .onEvent = twrAnchorOnEvent,
+    .init = SnifferInit,
+    .onEvent = SnifferOnEvent,
 };
