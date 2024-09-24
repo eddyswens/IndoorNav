@@ -48,16 +48,16 @@ void lppHandleShortPacket(char *data, size_t length)
     }
     case LPP_SHORT_REBOOT:
     {
-      struct lppShortReboot_s* rebootInfo = (struct lppShortReboot_s*)&data[1];
+      // struct lppShortReboot_s* rebootInfo = (struct lppShortReboot_s*)&data[1];
 
-      // Set boot flags
-      if (rebootInfo->bootMode == LPP_SHORT_REBOOT_TO_BOOTLOADER) {
-        bootmodeSetBootloaderModeFlag();
-      } else if (rebootInfo->bootMode == LPP_SHORT_REBOOT_TO_FIRMWARE) {
-        bootmodeClearBootloaderModeFlag();
-      }
+      // // Set boot flags
+      // if (rebootInfo->bootMode == LPP_SHORT_REBOOT_TO_BOOTLOADER) {
+      //   bootmodeSetBootloaderModeFlag();
+      // } else if (rebootInfo->bootMode == LPP_SHORT_REBOOT_TO_FIRMWARE) {
+      //   bootmodeClearBootloaderModeFlag();
+      // }
 
-      // Then resets!
+      // // Then resets!
       NVIC_SystemReset();
 
       break;

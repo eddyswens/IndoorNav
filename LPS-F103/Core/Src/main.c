@@ -467,14 +467,14 @@ static void handleMenuPos(char ch, MenuState* menuState) {
 
 static void handleMenuConfigurator(char ch, MenuState *menuState) {
   switch(ch) {
-    case '0':
+    case '1':
       printf("SET NEW POS\r\n");
       printf("id:\r\n");
       fflush(stdout);
       menuState->currentMenu = remotePosMenu;
       menuState->configChanged = false;
       break;
-    case '1':
+    case '2':
       printf("RESETTING ALL ANCHORS. . .\r\n");
       newServicePacket->action = LPP_SHORT_REBOOT;
       newServicePacket->destinationAddress = 0xff;
@@ -823,8 +823,8 @@ static void printConfiguratorOptions()
 {
   printf("-------------------\r\n");
   printf("Choose option to do:\r\n");
-  printf("0 - Set Anchor's position \r\n");
-  printf("1 - Reboot all anchors\r\n");
+  printf("1 - Set Anchor's position \r\n");
+  printf("2 - Reboot all anchors\r\n");
   printf("x - Back to main menu\r\n");
 }
 

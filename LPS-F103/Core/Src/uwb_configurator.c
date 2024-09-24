@@ -163,28 +163,48 @@ void initiateRanging(dwDevice_t *dev)
 
 static void SendServicePacket(dwDevice_t *dev, uwbServiceFromSerial_t *dataToSend)
 {
+  uint8_t size;
+  txPacket.destAddress[0] = dataToSend->destinationAddress;
+  txPacket.payload[1] = dataToSend->action;
+  switch(dataToSend->action) {
+    case LPP_SHORT_ANCHOR_POSITION:
+      size = 3*sizeof(float);
+      memcpy(&txPacket.payload[2], dataToSend->position, size);
+      break;
+    case LPP_SHORT_REBOOT:
+      size = 0;
+      break;
+    default:
+      size = 0;
+      break;
 
+  dwNewTransmit(dev);  // Перевод UWB в режим TX
+  dwSetDefaults(dev);
+  dwSetData(dev, (uint8_t*)&txPacket, MAC802154_HEADER_LENGTH+2+size);
+  // dwWaitForResponse(dev, true);  // Режим ожидания ответа после передачи
+  dwStartTransmit(dev);  // Начать передачу
+  }
 }
 
 static uint32_t ConfiguratorOnEvent(dwDevice_t *dev, uwbEvent_t event)
 {
   switch(event) {
     case eventPacketReceived:
-      rxcallback(dev);
-      // 10ms between rangings
-      return 10;
+      // rxcallback(dev);
+      // // 10ms between rangings
+      // return 10;
       break;
     case eventPacketSent:
-      txcallback(dev);
-      return 10;
+      // txcallback(dev);
+      // return 10;
       break;
     case eventTimeout:
-      initiateRanging(dev);
-      return 10;
+      // initiateRanging(dev);
+      // return 10;
       break;
     case eventReceiveFailed:
       // Try again ranging in 10ms
-      return 10;
+      // return 10;
       break;
     default:
       configASSERT(false);
