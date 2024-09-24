@@ -135,8 +135,8 @@ static void sendLppShort(dwDevice_t *dev, lpsLppShortPacket_t *packet)
   txPacket.payload[LPS_TDOA2_TYPE_INDEX] = LPP_HEADER_SHORT_PACKET;  // Заголовок указывает на тип SHORT_PACKET (0xF0)
   memcpy(&txPacket.payload[LPS_TDOA2_SEND_LPP_PAYLOAD_INDEX], packet->data, packet->length);  // Содержимое пакета переносится в отправляемый паккет, начиная с нужного индекса
 
-  txPacket.pan = 0xbccf;  // Установка PAN
-  txPacket.sourceAddress = 0xbccf000000000000 | 0xff;  // Указывается адрес источника ???
+  txPacket.pan = 0xdcec;                               // Установка PAN
+  txPacket.sourceAddress = 0xdcec000000000000 | 0xff;  // Указывается адрес источника ???
   txPacket.destAddress = options->anchorAddress[packet->dest];  // Адрес назначения (находим через айди анкера)
 
   dwNewTransmit(dev);  // Перевод UWB в режим TX
@@ -197,7 +197,7 @@ static bool rxcallback(dwDevice_t *dev) {
 
       previousAnchor = anchor;  // Запоминаем, какой якорь был обработан последним
 
-      handleLppPacket(dataLength, &rxPacket, &anchorCtx);  // Обработка LPP пакета
+      handleLppPacket(dataLength, &rxPacket, &anchorCtx);  // Обработка LPP пакета. Кароче тупа позицю обновиьт ежжи
 
       rangingOk = true;  // Успешная обработка пакета
     }
