@@ -9,7 +9,7 @@
 
 #include "bootmode.h"
 
-#define debug(...) // printf(__VA_ARGS__)
+#define debug(...)  printf(__VA_ARGS__)
 
 void lppHandleShortPacket(char *data, size_t length)
 {
@@ -33,17 +33,21 @@ void lppHandleShortPacket(char *data, size_t length)
         debug("LPP: Wrong set-anchor position length\r\n");
         break;
       }
-
-      cfgWriteFP32list(cfgAnchorPos, newpos->position, 3);
-      uwbConfig_t *uwbConfig = uwbGetConfig();
+      debug("Setting new anchor position to %f, %f, %f\r\n", newpos->position[0],
+                                                             newpos->position[1],
+                                                             newpos->position[2]);
+      
+      // uwbConfig_t *uwbConfig = uwbGetConfig();
+      struct uwbConfig_s* uwbConfig = uwbGetConfig();
+      
       uwbConfig->position[0] = newpos->position[0];
       uwbConfig->position[1] = newpos->position[1];
       uwbConfig->position[2] = newpos->position[2];
       uwbConfig->positionEnabled = true;
 
-      debug("Setting new anchor position to %f, %f, %f\r\n", newpos->position[0],
-                                                             newpos->position[1],
-                                                             newpos->position[2]);
+      cfgWriteFP32list(cfgAnchorPos, uwbConfig->position, 3);
+
+      printf("EEPROM configuration changed, restart for it to take effect!\r\n");
       break;
     }
     case LPP_SHORT_REBOOT:

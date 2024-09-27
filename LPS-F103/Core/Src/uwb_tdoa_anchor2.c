@@ -11,35 +11,6 @@
 
 #define debug(...) // printf(__VA_ARGS__)
 
-// Still using modulo 2 calculation for slots
-// TODO: If A0 is the TDMA master it could transmit slots parameters and frame
-//       start so that we would not be limited to modulo 2 anymore
-#define NSLOTS 8
-#define TDMA_SLOT_BITS 26 // 26: 2ms timeslot
-#define TDMA_NSLOT_BITS 3
-
-#define TDMA_FRAME_BITS (TDMA_SLOT_BITS + TDMA_NSLOT_BITS)
-#define TDMA_SLOT_LEN (1ull<<(TDMA_SLOT_BITS+1))
-#define TDMA_FRAME_LEN (1ull<<(TDMA_FRAME_BITS+1))
-
-#define TDMA_LAST_FRAME(NOW) ( NOW & ~(TDMA_FRAME_LEN-1) )
-
-// Time length of the preamble
-#define PREAMBLE_LENGTH_S ( 128 * 1017.63e-9 )
-#define PREAMBLE_LENGTH (uint64_t)( PREAMBLE_LENGTH_S * 499.2e6 * 128 )
-
-// Guard length to account for clock drift and time of flight
-#define TDMA_GUARD_LENGTH_S ( 1e-6 )
-#define TDMA_GUARD_LENGTH (uint64_t)( TDMA_GUARD_LENGTH_S * 499.2e6 * 128 )
-
-// Timeout for receiving a packet in a timeslot
-#define RECEIVE_TIMEOUT 300
-
-// Timeout for receiving a service packet after we TX ours
-#define RECEIVE_SERVICE_TIMEOUT 800
-
-#define TS_TX_SIZE 4
-
 // Useful constants
 static const uint8_t base_address[] = {0,0,0,0,0,0,0xec,0xdc};
 
@@ -80,8 +51,7 @@ static struct ctx_s {
   uint16_t distances[NSLOTS];
 } ctx;
 
-// Packet formats
-#define PACKET_TYPE_TDOA2 0x22
+
 
 typedef struct rangePacket_s {
   uint8_t type;

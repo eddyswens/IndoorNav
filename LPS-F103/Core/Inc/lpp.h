@@ -7,6 +7,7 @@
 void lppHandleShortPacket(char *data, size_t length);
 
 #define SHORT_LPP 0xF0
+#define CONFIGURATOR_REQUEST 0x34
 
 #define LPP_SHORT_ANCHOR_POSITION 0x01
 #define LPP_SHORT_REBOOT 0x02

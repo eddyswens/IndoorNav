@@ -46,9 +46,9 @@
 
 uint32_t uid[3];
 static bool modeChanged = false, addressChanged = false;
-uint8_t currentUwbMode;
-uwbServiceFromSerial_t servPacket;
-uwbServiceFromSerial_t* newServicePacket = &servPacket;
+static uint8_t currentUwbMode;
+static uwbServiceFromSerial_t servPacket;
+static uwbServiceFromSerial_t* newServicePacket = &servPacket;
 
 
 static void restConfig();
@@ -72,8 +72,6 @@ typedef struct {
   bool configChanged;
   Menu_t currentMenu;
   unsigned int tempId;
-  // Добавлены переменные для хранения координат позиции
-  int posIndex; // Индекс текущей координаты (0 - X, 1 - Y, 2 - Z)
 } MenuState;
 
 static void main_task(void *pvParameters) {
@@ -94,6 +92,8 @@ static void main_task(void *pvParameters) {
   ledOn(ledMode);
   
   buttonInit(buttonIdle);
+
+  clearUart();
 
   printf("\r\n\r\n====================\r\n");
 
@@ -211,6 +211,11 @@ int _write (int fd, const void *buf, size_t count)
   return count;
 }
 
+void clearUart()
+{
+  printf("\033[2J");
+}
+
 /*------------------------------------------------
 -----------------HANDLE FUNCTIONS-----------------
 --------------------------------------------------*/
@@ -250,6 +255,7 @@ static void handleMenuMain(char ch, MenuState* menuState) {
         changeMode(MODE_CONFIGURATOR);
       }
       else {
+        clearUart();
         printf("CONFIGURATOR MODE v0.1\r\n");
         printConfiguratorOptions();
         fflush(stdout);
@@ -283,7 +289,6 @@ static void handleMenuMain(char ch, MenuState* menuState) {
       fflush(stdout);
       menuState->currentMenu = posMenu;
       menuState->configChanged = false;
-      menuState->posIndex = 0; 
       break;
     case 'q':
       printf("RESETTING. . . \r\n");
@@ -405,8 +410,7 @@ static void handleMenuPower(char ch, MenuState* menuState) {
 }
 // Обработчик для режима ввода позиции
 static void handleMenuPos(char ch, MenuState* menuState) {
-  // Буфер для временного хранения числа
-  static char numBuffer[16] = {0};
+  static char numBuffer[16] = {0};  // Буфер для временного хранения числа
   static numBufferIndex = 0;
   static float tempX = 0.0, tempY = 0.0, tempZ = 0.0;
   static int posIndex = 0; 
@@ -433,11 +437,11 @@ static void handleMenuPos(char ch, MenuState* menuState) {
       if (numBufferIndex > 0) {
         numBuffer[numBufferIndex] = '\0'; 
         float value = atof(numBuffer);
-        switch (menuState->posIndex) {
+        switch (posIndex) {
           case 0: tempX = value; printf("\r\nY: "); break;
           case 1: tempY = value; printf("\r\nZ: "); break;
           case 2: tempZ = value; 
-
+            
             // Запись координат в структуру uwbConfig
             struct uwbConfig_s* uwbConfig = uwbGetConfig();
             uwbConfig->position[0] = tempX;
@@ -447,17 +451,17 @@ static void handleMenuPos(char ch, MenuState* menuState) {
             
             // Сохранение изменений в EEPROM
             cfgWriteFP32list(cfgAnchorPos, uwbConfig->position, 3);
-            menuState->configChanged = true; // Устанавливаем флаг, чтобы сообщить об изменении
-
             printf("\r\nSetting anchor position to: %04.1f %04.1f %04.1f\r\n", tempX, tempY, tempZ); // Вывод после обновления всех координат
+            
+            posIndex = -1;  // Последний ++ сделает нам ноль
 
+            menuState->configChanged = true; // Устанавливаем флаг, чтобы сообщить об изменении
             menuState->currentMenu = mainMenu;
             help();
             break; 
         }
-        
-        numBufferIndex = 0; // Очистить буфер 
-        menuState->posIndex++;
+        numBufferIndex = 0; // Очистить буфер
+        posIndex++;
         fflush(stdout);
       }
       break;
@@ -469,7 +473,7 @@ static void handleMenuConfigurator(char ch, MenuState *menuState) {
   switch(ch) {
     case '1':
       printf("SET NEW POS\r\n");
-      printf("id:\r\n");
+      printf("id: ");
       fflush(stdout);
       menuState->currentMenu = remotePosMenu;
       menuState->configChanged = false;
@@ -479,10 +483,12 @@ static void handleMenuConfigurator(char ch, MenuState *menuState) {
       newServicePacket->action = LPP_SHORT_REBOOT;
       newServicePacket->destinationAddress = 0xff;
       sendServiceData(newServicePacket);
+      clearUart();
       printConfiguratorOptions();
       menuState->configChanged = false;
       break;
     case 'x':
+      clearUart();
       menuState->currentMenu = mainMenu;
       help();
       menuState->configChanged = false;
@@ -521,7 +527,7 @@ static void handleMenuRemotePos(char ch, MenuState *menuState) {
     case '\r': 
       if (numBufferIndex > 0) {
         numBuffer[numBufferIndex] = '\0'; 
-        switch (menuState->posIndex) {
+        switch (posIndex) {
           case 0: tempID = atoi(numBuffer); printf("\r\nX: "); break;
           case 1: tempX = atof(numBuffer); printf("\r\nY: "); break;
           case 2: tempY = atof(numBuffer); printf("\r\nZ: "); break;
@@ -533,19 +539,22 @@ static void handleMenuRemotePos(char ch, MenuState *menuState) {
             newServicePacket->position[1] = tempY;
             newServicePacket->position[2] = tempZ;
             newServicePacket->destinationAddress = tempID;
-          
-            menuState->configChanged = false; // Устанавливаем флаг, чтобы сообщить об изменении
 
             printf("\r\nSetting anchor %x position to: %04.1f %04.1f %04.1f\r\n", tempID, tempX, tempY, tempZ); // Вывод после обновления всех координат
-
             sendServiceData(newServicePacket);
+
+            posIndex = -1;
+
+            menuState->configChanged = false; // Устанавливаем флаг, чтобы сообщить об изменении
             menuState->currentMenu = configuratorMenu;
+
+            clearUart();
             printConfiguratorOptions();
             break; 
         }
         
         numBufferIndex = 0; // Очистить буфер 
-        menuState->posIndex++;
+        posIndex++;
         fflush(stdout);
       }
       break;
@@ -558,8 +567,7 @@ static void handleSerialInput(char ch)
   static MenuState menuState = {
     .configChanged = true,
     .currentMenu = mainMenu,
-    .tempId = 0,
-    .posIndex = 0 
+    .tempId = 0
   };
 
  // menuState.configChanged = true;
