@@ -10,97 +10,29 @@
 #include "lpp.h"
 #include "mac.h"
 
-static uint8_t base_address[] = {0,0,0,0,0,0,0xec,0xdc};
 
-static packet_t txPacket;
-static volatile uint8_t curr_seq = 0;
-static int curr_anchor = 0;
-static uwbConfig_t config;
-static bool serviceToSent = false;
-static uint8_t globalSize = 0;
-static dwTime_t tdmaFrameStart;
-
-static dwTime_t startTxTicks;
-static dwTime_t finishTxTicks;
-
-typedef struct rangePacketListener_s {
-  uint8_t type;
-  uint8_t pid[NSLOTS];  // Packet id of the timestamps
-  uint8_t timestamps[NSLOTS][TS_TX_SIZE];  // Relevant time for anchors
-  uint16_t distances[NSLOTS];
-} __attribute__((packed)) rangePacketListener_t;
+#include "task.h"
 
 // #define printf(...)
 #define debug(...) // printf(__VA_ARGS__)
 
-static void txcallback(dwDevice_t *dev)
-{
+static uint8_t base_address[] = {0,0,0,0,0,0,0xec,0xdc};
 
-}
+static packet_t txPacket;
+static uwbConfig_t config;
+static bool serviceToSent = false;
+static uint8_t payloadSize = 0;
+static dwTime_t tdmaFrameStart;
+static uint16_t timeForTrying;  // Timeout Receiving packet from target anchor
+static uint64_t startTime;
+static bool extIds[MAX_ANCHORS];
 
-static bool rxcallback(dwDevice_t *dev) {
-  packet_t rxPacket;
-  dwTime_t rxTime = { .full = 0 };
-
-  dwGetRawReceiveTimestamp(dev, &rxTime);
-  dwCorrectTimestamp(dev, &rxTime);
-
-  int dataLength = dwGetDataLength(dev);  // Получаем длину данных
-  dwGetData(dev, (uint8_t*)&rxPacket, dataLength);
-
-  if (dataLength == 0 || rxPacket.payload[0] != PACKET_TYPE_TDOA2) {
-    return;
-  }
-  
-  rangePacketListener_t * rangePacket = (rangePacketListener_t *)rxPacket.payload;
-
-  uint8_t sourceAddr = rxPacket.sourceAddress[0];
-  if (sourceAddr == 0x0) {
-    // Resync local frame start to packet from anchor 0
-    dwTime_t pkTxTime = { .full = 0 };
-    memcpy(&pkTxTime, rangePacket->timestamps[sourceAddr], TS_TX_SIZE);
-    tdmaFrameStart.full = rxTime.full - (pkTxTime.full - TDMA_LAST_FRAME(pkTxTime.full));
-    tdmaFrameStart.full += TDMA_FRAME_LEN;
-  }
-
-  if(rxPacket.sourceAddress[0] == 0x0 && serviceToSent)
-  {
-    transmitData(dev, globalSize);
-    serviceToSent = false;
-    return true;
-  }
-  else
-  {
-    return false;
-  }
-}
-
-/* Adjust time for schedule transfer by DW1000 radio. Set 9 LSB to 0 */
-static uint32_t adjustTxRxTime(dwTime_t *time)
-{
-  uint32_t added = (1<<9) - (time->low32 & ((1<<9)-1));
-
-  time->low32 = (time->low32 & ~((1<<9)-1)) + (1<<9);
-
-  return added;
-}
-
-/* Calculate the transmit time for a given timeslot in the next frame */
-static dwTime_t transmitTimeForSlot(int slot)
-{
-  dwTime_t transmitTime = { .full = 0 };
-
-  transmitTime.full = tdmaFrameStart.full + slot*TDMA_SLOT_LEN + TDMA_SLOT_LEN/8;
-
-  // Add guard and preamble time
-  transmitTime.full += TDMA_GUARD_LENGTH;
-  transmitTime.full += PREAMBLE_LENGTH;
-
-  // DW1000 can only schedule time with 9 LSB at 0, adjust for it
-  adjustTxRxTime(&transmitTime);
-
-  return transmitTime;
-}
+typedef struct rangePkg_s {
+  uint8_t type;
+  uint8_t pid[NSLOTS];  // Packet id of the timestamps
+  uint8_t timestamps[NSLOTS][TS_TX_SIZE];  // Relevant time for anchors
+  uint16_t distances[NSLOTS];
+} __attribute__((packed)) rangePkg_t;
 
 static void setRadioInReceiveMode(dwDevice_t *dev) {
   dwNewReceive(dev);
@@ -108,40 +40,119 @@ static void setRadioInReceiveMode(dwDevice_t *dev) {
   dwStartReceive(dev);
 }
 
-void transmitData(dwDevice_t *dev, uint8_t length)
+static bool isNeedSendServiceToId(uint8_t externalId)
+{
+  if (extIds[externalId]) return false;
+
+  uint8_t targetId = txPacket.destAddress[0];
+  if (targetId == 0xFF || targetId == externalId) {
+    extIds[externalId] = true;
+    return true;
+  }
+  return false;
+}
+
+static void updateSendServiceFlag()
+{
+  uint16_t timeSinceStart = HAL_GetTick() - startTime;
+  if (timeSinceStart > timeForTrying) {
+    serviceToSent = false;
+    for (uint8_t idx=0;idx<MAX_ANCHORS;idx++) extIds[idx] = false;
+  }
+}
+
+static void rxcallback(dwDevice_t *dev) {
+  packet_t rxPacket;
+  dwTime_t rxTime = { .full = 0 };
+
+  int dataLength = dwGetDataLength(dev);  // Получаем длину данных
+  dwGetRawReceiveTimestamp(dev, &rxTime);  // Время получения
+  dwGetData(dev, (uint8_t*)&rxPacket, dataLength);  // Получаем данные
+
+  setRadioInReceiveMode(dev);
+
+  dwCorrectTimestamp(dev, &rxTime);
+  if (dataLength == 0 || rxPacket.payload[0] != PACKET_TYPE_TDOA2) return;
+
+  uint8_t sourceId = rxPacket.sourceAddress[0];
+  if (sourceId == 0x0) {
+    // Resync local frame start to packet from anchor 0
+    rangePkg_t * rangePacket = (rangePkg_t *)rxPacket.payload;
+    dwTime_t pkTxTime = { .full = 0 };
+    memcpy(&pkTxTime, rangePacket->timestamps[sourceId], TS_TX_SIZE);
+    tdmaFrameStart.full = rxTime.full - (pkTxTime.full - TDMA_LAST_FRAME(pkTxTime.full));
+    tdmaFrameStart.full += TDMA_FRAME_LEN;
+  }
+
+  if (serviceToSent) {
+    updateSendServiceFlag();
+    if (isNeedSendServiceToId(sourceId)) {
+      transmitServicePacket(dev, payloadSize, sourceId);
+    }
+  }
+}
+
+/* Adjust time for schedule transfer by DW1000 radio. Set 9 LSB to 0 */
+static uint32_t adjustTxRxTime(dwTime_t *time)
+{
+  uint32_t added = (1<<9) - (time->low32 & ((1<<9)-1));
+  time->low32 = (time->low32 & ~((1<<9)-1)) + (1<<9);
+  return added;
+}
+
+/* Calculate the transmit time for a given timeslot in the next frame */
+static dwTime_t transmittingTimeForSlotInNextFrame(int slot)
+{
+  dwTime_t transmitTime = { .full = 0 };
+  transmitTime.full = tdmaFrameStart.full + slot*TDMA_SLOT_LEN + TDMA_SLOT_LEN/8 + slot*TDMA_FRAME_LEN;
+  // Add guard and preamble time
+  transmitTime.full += TDMA_GUARD_LENGTH;
+  transmitTime.full += PREAMBLE_LENGTH;
+  // DW1000 can only schedule time with 9 LSB at 0, adjust for it
+  adjustTxRxTime(&transmitTime);
+  return transmitTime;
+}
+
+void transmitServicePacket(dwDevice_t *dev, uint8_t length, uint8_t destId)
 { 
-  dwTime_t txTime = transmitTimeForSlot(0);
-  
   dwNewTransmit(dev);  // Перевод UWB в режим TX
   dwSetDefaults(dev);
   dwSetData(dev, (uint8_t*)&txPacket, MAC802154_HEADER_LENGTH+2+length);  // length of data + 1 type + 1 action
+  dwTime_t txTime = transmittingTimeForSlotInNextFrame(destId);
   dwSetTxRxTime(dev, txTime);
-
+  printf("Sending pkg for addr %u\r\n", destId);
   dwWaitForResponse(dev, true);
   dwStartTransmit(dev);  // Начать передачу
 }
 
 static void SendServicePacket(dwDevice_t *dev, uwbServiceFromSerial_t *dataToSend)
 {
+  // We prepare service packet and set flag "serviceToSent"
   uint8_t size;
   switch(dataToSend->action) {
     case LPP_SHORT_ANCHOR_POSITION:
       size = 3 * sizeof(float);
       txPacket.destAddress[0] = dataToSend->destinationAddress;  // DESTINATION
-      txPacket.payload[1] = LPP_SHORT_ANCHOR_POSITION;  // ACTION (payload[1])
+      txPacket.payload[1] = dataToSend->action;  // ACTION (payload[1])
       memcpy(&txPacket.payload[2], dataToSend->position, size);  // DATA (payload[2])
-      globalSize = size;
+
+      timeForTrying = 1000;
+      startTime = HAL_GetTick();
+      payloadSize = size;
       serviceToSent = true;
-      // transmitData(dev, size);
       break;
+
     case LPP_SHORT_REBOOT:
       size = 0;
-      txPacket.destAddress[0] = 0xFF;  // DESTINATION
-      txPacket.payload[1] = LPP_SHORT_REBOOT;  // ACTION - 1
-      globalSize = size;
+      txPacket.destAddress[0] = dataToSend->destinationAddress;  // DESTINATION
+      txPacket.payload[1] = dataToSend->action;  // ACTION - 1
+
+      timeForTrying = 1000;
+      startTime = HAL_GetTick();
+      payloadSize = size;
       serviceToSent = true;
-      // transmitData(dev, size);
       break;
+
     default:
       break;
   }
@@ -151,13 +162,10 @@ static uint32_t ConfiguratorOnEvent(dwDevice_t *dev, uwbEvent_t event)
 {
   switch(event) {
     case eventPacketReceived:
-      if(!rxcallback(dev))
-      {
-        setRadioInReceiveMode(dev);
-      }
+      rxcallback(dev);
       break;
     case eventPacketSent:
-      txcallback(dev);
+      // setRadioInReceiveMode(dev);
       break;
     case eventReceiveFailed:
     case eventTimeout:
