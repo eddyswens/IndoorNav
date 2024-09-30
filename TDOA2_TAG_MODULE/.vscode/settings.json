@@ -1,0 +1,13 @@
+{
+    "files.associations": {
+        "mac.h": "c",
+        "uwb.h": "c",
+        "gpio.h": "c",
+        "usart.h": "c",
+        "spi.h": "c",
+        "stdint.h": "c",
+        "tdoaengine.h": "c",
+        "clockcorrectionengine.h": "c"
+    },
+    "cortex-debug.variableUseNaturalFormat": false
+}

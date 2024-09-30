@@ -26,6 +26,7 @@ include("cmake/gcc-arm-none-eabi.cmake")
 
 # Enable compile command to ease indexing with e.g. clangd
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -u _printf_float")
 
 # Enable CMake support for ASM and C languages
 enable_language(C ASM)
@@ -59,6 +60,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     Core/Src/tdoa/tdoaStorage.c
 
     Core/Src/clockCorrection/clockCorrectionEngine.c
+    Core/Src/uart_packet_send.c
 
 )
 

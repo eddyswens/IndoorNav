@@ -185,6 +185,7 @@ static void uwbTask()
   handleModeSwitch();
   // dwReadSystemEventMaskRegister(dwm);
   // dwReadSystemEventStatusRegister(dwm);
+
   HAL_Delay(1);
 
   if (eventsToHandle) {

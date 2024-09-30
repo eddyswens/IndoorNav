@@ -2,6 +2,7 @@
 #define __TDOA_ENGINE_H__
 
 #include "tdoaStorage.h"
+#include "stdint.h"
 
 #if CONFIG_LONGER_RANGE
 #define TDOA_ENGINE_MEASUREMENT_NOISE_STD 0.30f

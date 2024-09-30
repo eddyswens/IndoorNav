@@ -52,6 +52,8 @@ The implementation must handle
 // #include "tdoaStats.h"
 #include "clockCorrectionEngine.h"
 #include "uwb.h"
+#include "usart.h"
+#include "uart_packet_send.h"
 
 // **Инициализирует движок TDoA, устанавливая начальные значения и сохраняя важные параметры.**
 // 
@@ -431,13 +433,23 @@ void tdoaEngineProcessPacket(tdoaEngineState_t* engineState, tdoaAnchorContext_t
 // `excludedId`: ID якоря, который нужно исключить, если `doExcludeId` равен `true`.
 // 
 // **Возвращает:** `true`, если измерение времени считается надежным, `false` в противном случае.
+
 bool tdoaEngineProcessPacketFiltered(tdoaEngineState_t* engineState, tdoaAnchorContext_t* anchorCtx, const int64_t txAn_in_cl_An, const int64_t rxAn_by_T_in_cl_T, const bool doExcludeId, const uint8_t excludedId) {
   // Обновляет коррекцию часов для якоря, используя данные из пакета 
   // (время передачи и приема). 
   // Функция `updateClockCorrection` возвращает `true`, если 
   // измерение времени считается надежным.
 //   bool timeIsGood = updateClockCorrection(anchorCtx, txAn_in_cl_An, rxAn_by_T_in_cl_T, &engineState->stats);
+
+  TagPosition pos; //временная заглушка, отсюда отправляются определённые данные как пакет по UART
+  pos.x=12;
+  pos.y=23;
+  pos.z=77;
+  pos.orientation = 0xEB785817;
+  packetHandler(TELEMETRY_EVENT, &pos);
+
   bool timeIsGood = updateClockCorrection(anchorCtx, txAn_in_cl_An, rxAn_by_T_in_cl_T);
+
   // Если измерение времени надежное...
   if (timeIsGood) { 
     // ...то увеличивает счетчик надежных измерений времени.
@@ -454,8 +466,10 @@ bool tdoaEngineProcessPacketFiltered(tdoaEngineState_t* engineState, tdoaAnchorC
       // используя TDoA и частоту таймера Locodeck.
       double tdoaDistDiff = calcDistanceDiff(&otherAnchorCtx, anchorCtx, txAn_in_cl_An, rxAn_by_T_in_cl_T, engineState->locodeckTsFreq);
       // Добавляет данные TDoA (разницу в расстоянии, ID якорей, позиции якорей) 
+
+    
       // в очередь для отправки в модуль оценки местоположения.
-      printf("%lf", tdoaDistDiff);
+    // printf("Diff between anchor %x (%04.1f %04.1f %04.1f), and %x (%04.1f %04.1f %04.1f) is %lf. \r\n", anchorCtx->anchorInfo->id,  anchorCtx->anchorInfo->position.x, anchorCtx->anchorInfo->position.y, anchorCtx->anchorInfo->position.z, otherAnchorCtx.anchorInfo->id, otherAnchorCtx.anchorInfo->position.x, otherAnchorCtx.anchorInfo->position.y, otherAnchorCtx.anchorInfo->position.z, tdoaDistDiff);
       enqueueTDOA(&otherAnchorCtx, anchorCtx, tdoaDistDiff, engineState);
     }
   }
