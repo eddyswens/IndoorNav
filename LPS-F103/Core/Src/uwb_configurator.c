@@ -1,3 +1,17 @@
+/*
+ *  _____________  ____________   _  __
+   / ___/ __/ __ \/ __/ ___/ _ | / |/ /
+  / (_ / _// /_/ /\ \/ /__/ __ |/    /   
+  \___/___/\____/___/\___/_/ |_/_/|_/  
+ * 
+ * Geoscan UWB firmware
+ *
+ * Copyright (C) 2024 Geoscan LLC
+ * https://www.geoscan.ru
+ * 
+ * uwb_configuration.c - mode for remote control anchors
+ */
+
 #include "uwb.h"
 
 #include <string.h>
@@ -26,6 +40,7 @@ static dwTime_t tdmaFrameStart;
 static uint16_t timeForTrying;  // Timeout Receiving packet from target anchor
 static uint64_t startTime;
 static bool extIds[MAX_ANCHORS];
+static bool synced = false;
 
 typedef struct rangePkg_s {
   uint8_t type;
@@ -38,6 +53,49 @@ static void setRadioInReceiveMode(dwDevice_t *dev) {
   dwNewReceive(dev);
   dwSetDefaults(dev);
   dwStartReceive(dev);
+}
+/* Adjust time for schedule transfer by DW1000 radio. Set 9 LSB to 0 */
+static uint32_t adjustTxRxTime(dwTime_t *time)
+{
+  uint32_t added = (1<<9) - (time->low32 & ((1<<9)-1));
+  time->low32 = (time->low32 & ~((1<<9)-1)) + (1<<9);
+  return added;
+}
+/* Calculate the transmit time for a given timeslot in the next frame */
+static dwTime_t transmittingTimeForSlotInNextFrame(int slot)
+{
+  uint8_t mul;
+  if (slot == 0) mul = MAX_ANCHORS;
+  else mul = slot;
+  dwTime_t transmitTime = { .full = 0 };
+  transmitTime.full = tdmaFrameStart.full + mul*TDMA_FRAME_LEN + slot*TDMA_SLOT_LEN + TDMA_SLOT_LEN/8 ;
+  // Add guard and preamble time
+  transmitTime.full += TDMA_GUARD_LENGTH;
+  transmitTime.full += PREAMBLE_LENGTH;
+  // DW1000 can only schedule time with 9 LSB at 0, adjust for it
+  adjustTxRxTime(&transmitTime);
+  return transmitTime;
+}
+
+void transmitServicePacket(dwDevice_t *dev, uint8_t length, uint8_t destId)
+{ 
+  dwNewTransmit(dev);  // Перевод UWB в режим TX
+  dwSetDefaults(dev);
+  dwSetData(dev, (uint8_t*)&txPacket, MAC802154_HEADER_LENGTH+2+length);  // length of data + 1 type + 1 action
+  dwTime_t txTime = transmittingTimeForSlotInNextFrame(destId);
+  dwSetTxRxTime(dev, txTime);
+
+  debug("Sending pkg for addr %u\r\n", destId);
+
+  dwWaitForResponse(dev, true);
+  dwStartTransmit(dev);  // Начать передачу
+}
+
+static void clearExtIds()
+{
+  for (uint8_t idx=0;idx<MAX_ANCHORS;idx++) {
+    extIds[idx] = false;
+  }
 }
 
 static bool isNeedSendServiceToId(uint8_t externalId)
@@ -57,7 +115,7 @@ static void updateSendServiceFlag()
   uint16_t timeSinceStart = HAL_GetTick() - startTime;
   if (timeSinceStart > timeForTrying) {
     serviceToSent = false;
-    for (uint8_t idx=0;idx<MAX_ANCHORS;idx++) extIds[idx] = false;
+    clearExtIds();
   }
 }
 
@@ -81,54 +139,23 @@ static void rxcallback(dwDevice_t *dev) {
     dwTime_t pkTxTime = { .full = 0 };
     memcpy(&pkTxTime, rangePacket->timestamps[sourceId], TS_TX_SIZE);
     tdmaFrameStart.full = rxTime.full - (pkTxTime.full - TDMA_LAST_FRAME(pkTxTime.full));
-    tdmaFrameStart.full += TDMA_FRAME_LEN;
+    synced = true;
   }
 
-  if (serviceToSent) {
-    updateSendServiceFlag();
+  if (serviceToSent && synced) {
     if (isNeedSendServiceToId(sourceId)) {
+      synced = false;
       transmitServicePacket(dev, payloadSize, sourceId);
     }
+    updateSendServiceFlag();
   }
-}
-
-/* Adjust time for schedule transfer by DW1000 radio. Set 9 LSB to 0 */
-static uint32_t adjustTxRxTime(dwTime_t *time)
-{
-  uint32_t added = (1<<9) - (time->low32 & ((1<<9)-1));
-  time->low32 = (time->low32 & ~((1<<9)-1)) + (1<<9);
-  return added;
-}
-
-/* Calculate the transmit time for a given timeslot in the next frame */
-static dwTime_t transmittingTimeForSlotInNextFrame(int slot)
-{
-  dwTime_t transmitTime = { .full = 0 };
-  transmitTime.full = tdmaFrameStart.full + slot*TDMA_SLOT_LEN + TDMA_SLOT_LEN/8 + slot*TDMA_FRAME_LEN;
-  // Add guard and preamble time
-  transmitTime.full += TDMA_GUARD_LENGTH;
-  transmitTime.full += PREAMBLE_LENGTH;
-  // DW1000 can only schedule time with 9 LSB at 0, adjust for it
-  adjustTxRxTime(&transmitTime);
-  return transmitTime;
-}
-
-void transmitServicePacket(dwDevice_t *dev, uint8_t length, uint8_t destId)
-{ 
-  dwNewTransmit(dev);  // Перевод UWB в режим TX
-  dwSetDefaults(dev);
-  dwSetData(dev, (uint8_t*)&txPacket, MAC802154_HEADER_LENGTH+2+length);  // length of data + 1 type + 1 action
-  dwTime_t txTime = transmittingTimeForSlotInNextFrame(destId);
-  dwSetTxRxTime(dev, txTime);
-  printf("Sending pkg for addr %u\r\n", destId);
-  dwWaitForResponse(dev, true);
-  dwStartTransmit(dev);  // Начать передачу
 }
 
 static void SendServicePacket(dwDevice_t *dev, uwbServiceFromSerial_t *dataToSend)
 {
   // We prepare service packet and set flag "serviceToSent"
   uint8_t size;
+  clearExtIds();
   switch(dataToSend->action) {
     case LPP_SHORT_ANCHOR_POSITION:
       size = 3 * sizeof(float);
@@ -136,7 +163,7 @@ static void SendServicePacket(dwDevice_t *dev, uwbServiceFromSerial_t *dataToSen
       txPacket.payload[1] = dataToSend->action;  // ACTION (payload[1])
       memcpy(&txPacket.payload[2], dataToSend->position, size);  // DATA (payload[2])
 
-      timeForTrying = 1000;
+      timeForTrying = 3000;
       startTime = HAL_GetTick();
       payloadSize = size;
       serviceToSent = true;
@@ -147,7 +174,7 @@ static void SendServicePacket(dwDevice_t *dev, uwbServiceFromSerial_t *dataToSen
       txPacket.destAddress[0] = dataToSend->destinationAddress;  // DESTINATION
       txPacket.payload[1] = dataToSend->action;  // ACTION - 1
 
-      timeForTrying = 1000;
+      timeForTrying = 3000;
       startTime = HAL_GetTick();
       payloadSize = size;
       serviceToSent = true;
@@ -165,7 +192,6 @@ static uint32_t ConfiguratorOnEvent(dwDevice_t *dev, uwbEvent_t event)
       rxcallback(dev);
       break;
     case eventPacketSent:
-      // setRadioInReceiveMode(dev);
       break;
     case eventReceiveFailed:
     case eventTimeout:
