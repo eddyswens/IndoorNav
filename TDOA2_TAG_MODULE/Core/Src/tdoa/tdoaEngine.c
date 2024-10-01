@@ -435,19 +435,19 @@ void tdoaEngineProcessPacket(tdoaEngineState_t* engineState, tdoaAnchorContext_t
 // **Возвращает:** `true`, если измерение времени считается надежным, `false` в противном случае.
 
 bool tdoaEngineProcessPacketFiltered(tdoaEngineState_t* engineState, tdoaAnchorContext_t* anchorCtx, const int64_t txAn_in_cl_An, const int64_t rxAn_by_T_in_cl_T, const bool doExcludeId, const uint8_t excludedId) {
+
+  // TagPosition pos; //временная заглушка, отсюда отправляются определённые данные как пакет по UART
+  // pos.x=12;
+  // pos.y=23;
+  // pos.z=77;
+  // pos.orientation = 0xEB785817;
+  // packetHandler(TELEMETRY_EVENT, &pos);
+
   // Обновляет коррекцию часов для якоря, используя данные из пакета 
   // (время передачи и приема). 
   // Функция `updateClockCorrection` возвращает `true`, если 
   // измерение времени считается надежным.
 //   bool timeIsGood = updateClockCorrection(anchorCtx, txAn_in_cl_An, rxAn_by_T_in_cl_T, &engineState->stats);
-
-  TagPosition pos; //временная заглушка, отсюда отправляются определённые данные как пакет по UART
-  pos.x=12;
-  pos.y=23;
-  pos.z=77;
-  pos.orientation = 0xEB785817;
-  packetHandler(TELEMETRY_EVENT, &pos);
-
   bool timeIsGood = updateClockCorrection(anchorCtx, txAn_in_cl_An, rxAn_by_T_in_cl_T);
 
   // Если измерение времени надежное...

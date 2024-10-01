@@ -28,6 +28,11 @@ typedef struct { // 27+4 bytes
 
 } TelemetryEvent;
 
+typedef struct {
+	Event e;
+	uint16_t amp[4];
+} BeaconAmplitude;
+
 #pragma pack()
 
 //структура-заглушка, из которой берутся данные для пакета, потом они будут браться из нормальной структуры позиции
@@ -45,6 +50,7 @@ typedef struct
 enum
 {
   TELEMETRY_EVENT = 0x02,
+  BEACON_AMPLITUDE_EVENT = 0x33,
   OTHER_EVENT = 0x03,
 };
 
