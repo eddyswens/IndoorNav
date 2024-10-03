@@ -9,7 +9,12 @@
 
 #include "bootmode.h"
 
+#include "FreeRTOS.h"
+#include "semphr.h"
+
 #define debug(...)  printf(__VA_ARGS__)
+
+extern SemaphoreHandle_t xMutexI2C;
 
 void lppHandleShortPacket(char *data, size_t length)
 {
@@ -39,13 +44,18 @@ void lppHandleShortPacket(char *data, size_t length)
       
       // uwbConfig_t *uwbConfig = uwbGetConfig();
       struct uwbConfig_s* uwbConfig = uwbGetConfig();
-      
+
+      uwbConfig->positionEnabled = true;
       uwbConfig->position[0] = newpos->position[0];
       uwbConfig->position[1] = newpos->position[1];
       uwbConfig->position[2] = newpos->position[2];
-      uwbConfig->positionEnabled = true;
+      
+      if(xSemaphoreTake(xMutexI2C, portMAX_DELAY) == pdTRUE) {
+        cfgWriteFP32list(cfgAnchorPos, uwbConfig->position, 3);
+        xSemaphoreGive(xMutexI2C);
+      }
 
-      cfgWriteFP32list(cfgAnchorPos, uwbConfig->position, 3);
+      
 
       printf("EEPROM configuration changed, restart for it to take effect!\r\n");
       break;

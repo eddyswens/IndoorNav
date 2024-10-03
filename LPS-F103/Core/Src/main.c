@@ -40,6 +40,8 @@
 #include "uwb.h"
 #include "lpp.h"
 
+#include <semphr.h>
+
 
 #define POWER_LEVELS 10
 #define USE_FTDI_UART
@@ -49,6 +51,9 @@ static bool modeChanged = false, addressChanged = false;
 static uint8_t currentUwbMode;
 static uwbServiceFromSerial_t servPacket;
 static uwbServiceFromSerial_t* newServicePacket = &servPacket;
+
+StaticSemaphore_t xMutexI2CBuffer;
+SemaphoreHandle_t xMutexI2C;
 
 
 static void restConfig();
@@ -102,6 +107,12 @@ for (uint8_t i = 0; i < 3; ++i) {
   printf("%08X", uid[i]); 
 }
   printf("\r\n");
+
+// Init Mutex for I2C
+ xMutexI2C = xSemaphoreCreateMutexStatic(&xMutexI2CBuffer);
+ if(xMutexI2C == NULL) {
+  printf("[ERROR]: Error while creating static I2C mutex");
+ }
 
 // Init LCD
   if (ssd1306_Init(&hi2c1) != 0) {
@@ -175,7 +186,10 @@ for (uint8_t i = 0; i < 3; ++i) {
   // Main loop ...
   while(1) {
     usbcommPrintWelcomeMessage();
-    printConfigLCD();
+    if( xSemaphoreTake(xMutexI2C, portMAX_DELAY) == pdTRUE) {
+      printConfigLCD();
+      xSemaphoreGive(xMutexI2C);
+    }
     ledTick();
     handleButton();
 
@@ -450,8 +464,12 @@ static void handleMenuPos(char ch, MenuState* menuState) {
             uwbConfig->positionEnabled = true;
             
             // Сохранение изменений в EEPROM
-            cfgWriteFP32list(cfgAnchorPos, uwbConfig->position, 3);
             printf("\r\nSetting anchor position to: %04.1f %04.1f %04.1f\r\n", tempX, tempY, tempZ); // Вывод после обновления всех координат
+
+            if( xSemaphoreTake(xMutexI2C, portMAX_DELAY) == pdTRUE) {
+              cfgWriteFP32list(cfgAnchorPos, uwbConfig->position, 3);
+              xSemaphoreGive(xMutexI2C);
+            }
             
             posIndex = -1;  // Последний ++ сделает нам ноль
 
