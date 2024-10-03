@@ -10,7 +10,7 @@
 
 extern uwbAlgorithm_t uwbTdoa2TagAlgorithm;
 
-#define LOCODECK_NR_OF_TDOA2_ANCHORS 8
+#define LOCODECK_NR_OF_TDOA2_ANCHORS 6
 
 typedef struct {
   const locoAddress_t anchorAddress[LOCODECK_NR_OF_TDOA2_ANCHORS];
@@ -35,12 +35,6 @@ typedef struct {
 #define LPS_TDOA2_LPP_HEADER (sizeof(rangePacket2_t))
 #define LPS_TDOA2_LPP_TYPE (sizeof(rangePacket2_t) + 1)
 #define LPS_TDOA2_LPP_PAYLOAD (sizeof(rangePacket2_t) + 2)
-
-// Positions for sent LPP packets
-#define LPS_TDOA2_TYPE_INDEX 0
-#define LPS_TDOA2_SEND_LPP_PAYLOAD_INDEX 1
-
-#define TDOA2_LPP_PACKET_SEND_TIMEOUT (LOCODECK_NR_OF_TDOA2_ANCHORS * 5)
 
 #define TDOA2_RECEIVE_TIMEOUT 10000
 

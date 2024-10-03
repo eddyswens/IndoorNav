@@ -28,11 +28,6 @@ static uint8_t previousAnchor;
 // Holds data for the latest packet from all anchors
 static history_t history[LOCODECK_NR_OF_TDOA2_ANCHORS];
 
-// LPP packet handling
-static lpsLppShortPacket_t lppPacket;
-static bool lppPacketToSend;
-static int lppPacketSendTryCounter;
-
 static void lpsHandleLppShortPacket(const uint8_t srcId, const uint8_t *data, tdoaAnchorContext_t *anchorCtx);
 
 // Log data
@@ -117,65 +112,21 @@ static void handleLppPacket(const int dataLength, const packet_t* rxPacket, tdoa
   }
 }
 
-
-// Send an LPP packet, the radio will automatically go back in RX mode
-// Отправить LPP пакет. UWB автоматически уйдет в RX mode.
-// dev: указатель на структуру dwDevice_t, представляющую устройство, 
-// через которое будет отправляться пакет.
-// packet: указатель на структуру lpsLppShortPacket_t, содержащую 
-// данные для отправки, включая полезную нагрузку и информацию 
-// о длине и адресе назначения.
-static void sendLppShort(dwDevice_t *dev, lpsLppShortPacket_t *packet)
-{
-  static packet_t txPacket;  // создаем пакет
-  dwIdle(dev);  // uwb уходит в idle
-
-  MAC80215_PACKET_INIT(txPacket, MAC802154_TYPE_DATA);  // Инициализруем пакет макросом под нужный тип
-
-  txPacket.payload[LPS_TDOA2_TYPE_INDEX] = LPP_HEADER_SHORT_PACKET;  // Заголовок указывает на тип SHORT_PACKET (0xF0)
-  memcpy(&txPacket.payload[LPS_TDOA2_SEND_LPP_PAYLOAD_INDEX], packet->data, packet->length);  // Содержимое пакета переносится в отправляемый паккет, начиная с нужного индекса
-
-  txPacket.pan = 0xdcec;                               // Установка PAN
-  txPacket.sourceAddress = 0xdcec000000000000 | 0xff;  // Указывается адрес источника ???
-  txPacket.destAddress = options->anchorAddress[packet->dest];  // Адрес назначения (находим через айди анкера)
-
-  dwNewTransmit(dev);  // Перевод UWB в режим TX
-  dwSetDefaults(dev);  // Параметры по умолчанию для передачи
-  dwSetData(dev, (uint8_t*)&txPacket, MAC802154_HEADER_LENGTH+1+packet->length);  // Переносим пакет в буфер для отправки, +1 - заголовок LPP
-
-  dwWaitForResponse(dev, true);  // Режим ожидания ответа после передачи
-  dwStartTransmit(dev);  // Начать передачу
-}
-
 // Обрабатывает приём данных с устройства dwDevice_t - UWB-радиомодуля. 
 // Функция выполняет несколько задач, связанных с обработкой пакетов TDoA2
 //  и взаимодействием с якорями в системе локализации.
 
 // dev: указатель на структуру 
 // dwDevice_t, представляющую радиоустройство, через которое получены данные.
-
-// bool: Функция возвращает true, если был отправлен короткий LPP пакет (lppSent = true), 
-// и false в противном случае.
-static bool rxcallback(dwDevice_t *dev) {
-  // tdoaStats_t* stats = &tdoaEngineState.stats;
-  // STATS_CNT_RATE_EVENT(&stats->packetsReceived);  // Обновляем счетчик полученных пакетов
-
+static void rxcallback(dwDevice_t *dev) {
   int dataLength = dwGetDataLength(dev);  // Получаем длину данных
   packet_t rxPacket;
 
   dwGetData(dev, (uint8_t*)&rxPacket, dataLength);  // Получаем пакет данных
-  const rangePacket2_t* packet = (rangePacket2_t*)rxPacket.payload;  // Указатель на полезную нагрузку пакета
-
-  bool lppSent = false;
-  if (packet->type == PACKET_TYPE_TDOA2) {  // Если пакет типа TDOA2
+  
+  if (rxPacket.payload[0] == PACKET_TYPE_TDOA2) {  // Если пакет типа TDOA2
+    const rangePacket2_t* packet = (rangePacket2_t*)rxPacket.payload;  // Указатель на полезную нагрузку пакета
     const uint8_t anchor = rxPacket.sourceAddress & 0xff;  // Извлекаем адреся якоря, отправившего пакет
-
-    // Check if we need to send the current LPP packet
-    // Проверяем, надо ли отправить ответ
-    if (lppPacketToSend && lppPacket.dest == anchor) {
-      sendLppShort(dev, &lppPacket);  // Отправляем
-      lppSent = true;
-    }
 
     dwTime_t arrival = {.full = 0};
     dwGetReceiveTimestamp(dev, &arrival);  // Извлекаем метку времени приема пакета
@@ -202,8 +153,6 @@ static bool rxcallback(dwDevice_t *dev) {
       rangingOk = true;  // Успешная обработка пакета
     }
   }
-
-  return lppSent;
 }
 
 // Устанавливает UWB в RX mode
@@ -222,22 +171,8 @@ static void setRadioInReceiveMode(dwDevice_t *dev) {
 static uint32_t onEvent(dwDevice_t *dev, uwbEvent_t event) {
   switch(event) {
     case eventPacketReceived:
-      if (rxcallback(dev)) {  // Вызыв колбека, проверка. Если пакет обработан и отправлен ответ
-        lppPacketToSend = false;  // Флаг lppPacketToSend = false
-      } else {
-        setRadioInReceiveMode(dev);  // Иначе ставим UWB в RX mode
-
-        // Discard lpp packet if we cannot send it for too long
-        if (++lppPacketSendTryCounter >= TDOA2_LPP_PACKET_SEND_TIMEOUT) {  // Если счетчик попыток слишком большой
-          lppPacketToSend = false;  // Флаг сбрасывается
-        }
-      }
-
-      if (!lppPacketToSend) {  // Если флаг сброшен
-        // Get next lpp packet
-        lppPacketToSend = lpsGetLppShort(&lppPacket);  // Пытаемся получить следующий LPP пакет
-        lppPacketSendTryCounter = 0;  // Сброс счетчика попыток
-      }
+      rxcallback(dev);  // Вызыв колбека
+      setRadioInReceiveMode(dev);  // Cтавим UWB в RX mode
       break;
     case eventTimeout:  // Далее
       // Fall through
@@ -298,8 +233,6 @@ static void Initialize(dwDevice_t *dev) {
   tdoaEngineInit(&tdoaEngineState, now_ms, sendTdoaToEstimatorCallback, LOCODECK_TS_FREQ, TdoaEngineMatchingAlgorithmYoungest);
 
   previousAnchor = 0;  // Инит переменной, с последним анкером
-
-  lppPacketToSend = false;  // Инит флага, что пакет надо отправить
 
   locoDeckSetRangingState(0);  // Нет активных анкеров в начале
   dwSetReceiveWaitTimeout(dev, TDOA2_RECEIVE_TIMEOUT);  // Настройка таймаута на ожидание приема

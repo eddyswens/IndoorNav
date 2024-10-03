@@ -89,12 +89,6 @@ typedef struct {
   uint8_t data[30];
 } lpsLppShortPacket_t;
 
-// Poll if there is a LPS short configuration packet to send
-// Return true if the packet data has been filled in shortPacket
-// Return false if no packet to send
-// Function to be used by the LPS algorithm
-bool lpsGetLppShort(lpsLppShortPacket_t *shortPacket);
-
 uint16_t locoDeckGetRangingState();
 void locoDeckSetRangingState(const uint16_t newState);
 

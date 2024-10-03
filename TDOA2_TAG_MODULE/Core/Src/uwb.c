@@ -3,8 +3,6 @@
 #include "gpio.h"
 #include "stm32f1xx.h"
 
-#include "queue.h"
-
 #include "lpsTdoa2Tag.h"
 
 // #define debug(...) // printf(__VA_ARGS__)
@@ -57,7 +55,6 @@ static bool isInit = false;
 static dwDevice_t dwm_device;
 static dwDevice_t *dwm = &dwm_device;
 static bool eventsToHandle = false;
-static Queue* lppShortQueue;
 
 static uint32_t timeout;
 
@@ -198,28 +195,6 @@ static void uwbTask()
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
     if (GPIO_Pin == GPIO_PIN_IRQ) eventsToHandle = true;
-}
-
-static lpsLppShortPacket_t lppShortPacket;
-
-bool lpsSendLppShort(uint8_t destId, void* data, size_t length)
-{
-  bool result = false;
-
-  if (isInit)
-  {
-    lppShortPacket.dest = destId;
-    lppShortPacket.length = length;
-    memcpy(lppShortPacket.data, data, length);
-    result = enqueue(lppShortQueue, &lppShortPacket);
-  }
-
-  return result;
-}
-
-bool lpsGetLppShort(lpsLppShortPacket_t* shortPacket)
-{
-  return dequeue(lppShortQueue, shortPacket);
 }
 
 /************ Low level ops for libdw **********/
@@ -369,14 +344,7 @@ static void dwm1000Init()
     dwSetReceiveWaitTimeout(dwm, DEFAULT_RX_TIMEOUT);
 
     dwCommitConfiguration(dwm);
-
-    // memoryRegisterHandler(&memDef);
-
-    // algoSemaphore = xSemaphoreCreateMutex();
-
-    // xTaskCreate(uwbTask, LPS_DECK_TASK_NAME, LPS_DECK_STACKSIZE, NULL,
-    //             LPS_DECK_TASK_PRI, &uwbTaskHandle);
-    lppShortQueue = createQueue(10);
+    
     isInit = true;
 }
 
