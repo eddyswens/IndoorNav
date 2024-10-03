@@ -24,7 +24,7 @@ struct {
   {.algorithm = &uwbSnifferAlgorithm,   .name = "Sniffer"},
   {.algorithm = &uwbTdoa2Algorithm,     .name = "TDoA Anchor v2"},
   {.algorithm = &uwbTdoa3Algorithm,     .name = "TDoA Anchor v3"},
-  {.algorithm = &uwbConfiguratorAlgorithm,     .name = "Usb Configurator"},
+  {.algorithm = &uwbConfiguratorAlgorithm,     .name = "Configurator"},
   {NULL, NULL},
 };
 
@@ -95,8 +95,6 @@ void uwbInit()
   } else {
     algorithm = &dummyAlgorithm;
   }
-
-  config.positionEnabled = cfgReadFP32list(cfgAnchorPos, config.position, 3);
 
   dwAttachSentHandler(dwm, txcallback);
   dwAttachReceivedHandler(dwm, rxcallback);

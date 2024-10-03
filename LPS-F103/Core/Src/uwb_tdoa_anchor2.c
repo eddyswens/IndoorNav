@@ -230,16 +230,14 @@ static void setTxData(dwDevice_t *dev)
   uwbConfig_t *uwbConfig = uwbGetConfig();
 
   // LPP anchor position is currently sent in all packets
-  if (uwbConfig->positionEnabled) {
-    txPacket.payload[LPP_HEADER] = SHORT_LPP;
-    txPacket.payload[LPP_TYPE] = LPP_SHORT_ANCHOR_POSITION;
+  txPacket.payload[LPP_HEADER] = SHORT_LPP;
+  txPacket.payload[LPP_TYPE] = LPP_SHORT_ANCHOR_POSITION;
 
-    struct lppShortAnchorPosition_s *pos = (struct lppShortAnchorPosition_s*) &txPacket.payload[LPP_PAYLOAD];
-    memcpy(pos->position, uwbConfig->position, 3*sizeof(float));
+  struct lppShortAnchorPosition_s *pos = (struct lppShortAnchorPosition_s*) &txPacket.payload[LPP_PAYLOAD];
+  memcpy(pos->position, uwbConfig->position, 3*sizeof(float));
 
-    lppLength = 2 + sizeof(struct lppShortAnchorPosition_s);
-  }
-
+  lppLength = 2 + sizeof(struct lppShortAnchorPosition_s);
+  
   rangePacket_t *rangePacket = (rangePacket_t *)txPacket.payload;
 
   for (int i=0; i<NSLOTS; i++) {

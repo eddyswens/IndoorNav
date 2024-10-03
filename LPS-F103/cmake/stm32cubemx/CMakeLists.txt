@@ -64,7 +64,6 @@ target_sources(stm32cubemx INTERFACE
     ../../Core/Src/f1/usart.c
     ../../Core/Src/f1/usbd_conf.c
     ../../Core/Src/eeprom.c
-    ../../Core/Src/bootmode.c
 
     ../../Core/Src/usb_device.c
     ../../Core/Src/usbd_cdc_if.c

@@ -39,7 +39,7 @@ static uint8_t payloadSize = 0;
 static dwTime_t tdmaFrameStart;
 static uint16_t timeForTrying;  // Timeout Receiving packet from target anchor
 static uint64_t startTime;
-static bool extIds[MAX_ANCHORS];
+static bool externalAnchorIds[MAX_ANCHORS];
 static bool synced = false;
 
 typedef struct rangePkg_s {
@@ -54,15 +54,15 @@ static void setRadioInReceiveMode(dwDevice_t *dev) {
   dwSetDefaults(dev);
   dwStartReceive(dev);
 }
-/* Adjust time for schedule transfer by DW1000 radio. Set 9 LSB to 0 */
-static uint32_t adjustTxRxTime(dwTime_t *time)
+
+static uint32_t adjustTxRxTime(dwTime_t *time)  // Adjust time for schedule transfer by DW1000 radio. Set 9 LSB to 0
 {
   uint32_t added = (1<<9) - (time->low32 & ((1<<9)-1));
   time->low32 = (time->low32 & ~((1<<9)-1)) + (1<<9);
   return added;
 }
-/* Calculate the transmit time for a given timeslot in the next frame */
-static dwTime_t transmittingTimeForSlotInNextFrame(int slot)
+
+static dwTime_t getTransmittingTimeForSlotInNextFrame(int slot)  // Calculate the transmit time for a given timeslot in the next frame
 {
   uint8_t mul;
   if (slot == 0) mul = MAX_ANCHORS;
@@ -82,7 +82,7 @@ void transmitServicePacket(dwDevice_t *dev, uint8_t length, uint8_t destId)
   dwNewTransmit(dev);  // Перевод UWB в режим TX
   dwSetDefaults(dev);
   dwSetData(dev, (uint8_t*)&txPacket, MAC802154_HEADER_LENGTH+2+length);  // length of data + 1 type + 1 action
-  dwTime_t txTime = transmittingTimeForSlotInNextFrame(destId);
+  dwTime_t txTime = getTransmittingTimeForSlotInNextFrame(destId);
   dwSetTxRxTime(dev, txTime);
 
   debug("Sending pkg for addr %u\r\n", destId);
@@ -91,20 +91,20 @@ void transmitServicePacket(dwDevice_t *dev, uint8_t length, uint8_t destId)
   dwStartTransmit(dev);  // Начать передачу
 }
 
-static void clearExtIds()
+static void clearExternalAnchorIds()
 {
   for (uint8_t idx=0;idx<MAX_ANCHORS;idx++) {
-    extIds[idx] = false;
+    externalAnchorIds[idx] = false;
   }
 }
 
 static bool isNeedSendServiceToId(uint8_t externalId)
 {
-  if (extIds[externalId]) return false;
+  if (externalAnchorIds[externalId]) return false;
 
   uint8_t targetId = txPacket.destAddress[0];
   if (targetId == 0xFF || targetId == externalId) {
-    extIds[externalId] = true;
+    externalAnchorIds[externalId] = true;
     return true;
   }
   return false;
@@ -115,7 +115,7 @@ static void updateSendServiceFlag()
   uint16_t timeSinceStart = HAL_GetTick() - startTime;
   if (timeSinceStart > timeForTrying) {
     serviceToSent = false;
-    clearExtIds();
+    clearExternalAnchorIds();
   }
 }
 
@@ -131,25 +131,27 @@ static void rxcallback(dwDevice_t *dev) {
 
   dwCorrectTimestamp(dev, &rxTime);
   if (dataLength == 0 || rxPacket.payload[0] != PACKET_TYPE_TDOA2) return;
-
   uint8_t sourceId = rxPacket.sourceAddress[0];
-  if (sourceId == 0x0) {
-    // Resync local frame start to packet from anchor 0
+
+  if (sourceId == 0x0) {  // Resync local frame start to packet from anchor 0
     rangePkg_t * rangePacket = (rangePkg_t *)rxPacket.payload;
     dwTime_t pkTxTime = { .full = 0 };
     memcpy(&pkTxTime, rangePacket->timestamps[sourceId], TS_TX_SIZE);
     tdmaFrameStart.full = rxTime.full - (pkTxTime.full - TDMA_LAST_FRAME(pkTxTime.full));
     synced = true;
-    ledOn(ledSync);
+    ledBlink(ledSync, true);
   }
 
-  if (serviceToSent && synced) {
+  if (serviceToSent && synced) {  // Если синхронизированы и надо отправить
     if (isNeedSendServiceToId(sourceId)) {
-      synced = false;
-      ledOff(ledSync);
       transmitServicePacket(dev, payloadSize, sourceId);
+      synced = false;
     }
     updateSendServiceFlag();
+  }
+  
+  if (!serviceToSent) {
+    if (sourceId <= MAX_ANCHORS) ledBlink(sourceId, true);  // Моргаем индикатором
   }
 }
 
@@ -157,7 +159,7 @@ static void SendServicePacket(dwDevice_t *dev, uwbServiceFromSerial_t *dataToSen
 {
   // We prepare service packet and set flag "serviceToSent"
   uint8_t size;
-  clearExtIds();
+  clearExternalAnchorIds();
   switch(dataToSend->action) {
     case LPP_SHORT_ANCHOR_POSITION:
       size = 3 * sizeof(float);
@@ -197,7 +199,8 @@ static uint32_t ConfiguratorOnEvent(dwDevice_t *dev, uwbEvent_t event)
       break;
     case eventReceiveFailed:
     case eventTimeout:
-    case eventReceiveTimeout:  // Таймаут, Неудача получения пакета, Таймаут получения
+    case eventReceiveTimeout:
+        // Таймаут, Неудача получения пакета, Таймаут получения
       setRadioInReceiveMode(dev);  // Переходим снова в режим RX
       break;
     default:

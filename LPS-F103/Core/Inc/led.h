@@ -11,10 +11,18 @@
 
 #include <stdbool.h>
 
-#define N_LEDS 3
+#define N_LEDS 11
 
 typedef enum {
-  ledRx=0,
+  ledA0=0,
+  ledA1,
+  ledA2,
+  ledA3,
+  ledA4,
+  ledA5,
+  ledA6,
+  ledA7,
+  ledRx,
   ledTx,
   ledSync
 } led_e;

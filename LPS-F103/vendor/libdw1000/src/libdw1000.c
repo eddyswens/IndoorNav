@@ -1272,9 +1272,9 @@ void dwHandleInterrupt(dwDevice_t *dev) {
 		(*dev->handleError)(dev);
 	}
 	if(dwIsTransmitDone(dev) && dev->handleSent != 0) {
-		ledBlink(ledTx, true);
 		dwClearTransmitStatus(dev);
 		(*dev->handleSent)(dev);
+		ledBlink(ledTx, true);
 	}
 	if(dwIsReceiveTimestampAvailable(dev) && dev->handleReceiveTimestampAvailable != 0) {
 		dwClearReceiveTimestampAvailableStatus(dev);
@@ -1301,13 +1301,13 @@ void dwHandleInterrupt(dwDevice_t *dev) {
 			}
 		}
 	} else if(dwIsReceiveDone(dev) && dev->handleReceived != 0) {
-		ledBlink(ledRx, true);
 		dwClearReceiveStatus(dev);
 		(*dev->handleReceived)(dev);
 		if(dev->permanentReceive) {
 			dwNewReceive(dev);
 			dwStartReceive(dev);
 		}
+		ledBlink(ledRx, true);
 	}
 }
 

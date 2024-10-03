@@ -52,7 +52,6 @@ typedef struct uwbConfig_s {
   uint8_t anchorListSize;
   uint8_t anchors[MAX_ANCHORS];
   float position[3];
-  bool positionEnabled;
 
   bool smartPower;
   bool forceTxPower;

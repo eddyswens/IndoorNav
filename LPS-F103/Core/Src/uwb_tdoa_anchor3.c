@@ -543,15 +543,13 @@ static void setTxData(dwDevice_t *dev)
   int rangePacketSize = populateTxData((rangePacket3_t *)txPacket.payload);
 
   // LPP anchor position is currently sent in all packets
-  if (uwbConfig->positionEnabled) {
-    txPacket.payload[rangePacketSize + LPP_HEADER] = SHORT_LPP;
-    txPacket.payload[rangePacketSize + LPP_TYPE] = LPP_SHORT_ANCHOR_POSITION;
+  txPacket.payload[rangePacketSize + LPP_HEADER] = SHORT_LPP;
+  txPacket.payload[rangePacketSize + LPP_TYPE] = LPP_SHORT_ANCHOR_POSITION;
 
-    struct lppShortAnchorPosition_s *pos = (struct lppShortAnchorPosition_s*) &txPacket.payload[rangePacketSize + LPP_PAYLOAD];
-    memcpy(pos->position, uwbConfig->position, 3 * sizeof(float));
+  struct lppShortAnchorPosition_s *pos = (struct lppShortAnchorPosition_s*) &txPacket.payload[rangePacketSize + LPP_PAYLOAD];
+  memcpy(pos->position, uwbConfig->position, 3 * sizeof(float));
 
-    lppLength = 2 + sizeof(struct lppShortAnchorPosition_s);
-  }
+  lppLength = 2 + sizeof(struct lppShortAnchorPosition_s);
 
   dwSetData(dev, (uint8_t*)&txPacket, MAC802154_HEADER_LENGTH + rangePacketSize + lppLength);
 }

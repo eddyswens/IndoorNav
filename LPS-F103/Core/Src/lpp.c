@@ -7,8 +7,6 @@
 #include "cfg.h"
 #include "uwb.h"
 
-#include "bootmode.h"
-
 #include "FreeRTOS.h"
 #include "semphr.h"
 
@@ -45,7 +43,6 @@ void lppHandleShortPacket(char *data, size_t length)
       // uwbConfig_t *uwbConfig = uwbGetConfig();
       struct uwbConfig_s* uwbConfig = uwbGetConfig();
 
-      uwbConfig->positionEnabled = true;
       uwbConfig->position[0] = newpos->position[0];
       uwbConfig->position[1] = newpos->position[1];
       uwbConfig->position[2] = newpos->position[2];
@@ -62,16 +59,6 @@ void lppHandleShortPacket(char *data, size_t length)
     }
     case LPP_SHORT_REBOOT:
     {
-      // struct lppShortReboot_s* rebootInfo = (struct lppShortReboot_s*)&data[1];
-
-      // // Set boot flags
-      // if (rebootInfo->bootMode == LPP_SHORT_REBOOT_TO_BOOTLOADER) {
-      //   bootmodeSetBootloaderModeFlag();
-      // } else if (rebootInfo->bootMode == LPP_SHORT_REBOOT_TO_FIRMWARE) {
-      //   bootmodeClearBootloaderModeFlag();
-      // }
-
-      // // Then resets!
       NVIC_SystemReset();
 
       break;

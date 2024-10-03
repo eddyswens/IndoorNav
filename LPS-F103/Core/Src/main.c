@@ -42,7 +42,7 @@
 
 #include <semphr.h>
 
-
+#define DELAY_IN_MENU 300
 #define POWER_LEVELS 10
 #define USE_FTDI_UART
 
@@ -100,7 +100,7 @@ static void main_task(void *pvParameters) {
 
   clearUart();
 
-  printf("\r\n\r\n====================\r\n");
+  printf("\r\n\r\n==========INIT==========\r\n");
 
 // Print CPU id
 printf("SYSTEM\t: CPU-ID: ");
@@ -144,8 +144,9 @@ for (uint8_t i = 0; i < 3; ++i) {
     printf("TEST\t: One or more self-tests failed, blocking startup!\r\n");
     usbcommSetSystemStarted(true);
   }
-
+  printf("\r\n");
   printUwbConfig();
+  printf("====================\r\n\r\n");
   HAL_Delay(500);
 
   ledOff(ledRx);
@@ -156,7 +157,7 @@ for (uint8_t i = 0; i < 3; ++i) {
   printf("SYSTEM\t: Press 'h' for help.\r\n");
 
   usbcommSetSystemStarted(true);
-
+  currentUwbMode = uwbGetCurrentMode();
   // Starts UWB protocol
   uwbStart();
 
@@ -225,7 +226,8 @@ static void handleMenuMain(char ch, MenuState* menuState) {
     case '9':
       changeAddress(ch - '0');
       break;
-    case 'i':                                         // I: ADDRESS 0-255 
+    case 'i':                                        // I: ADDRESS 0-255 
+      clearUart();
       printf("Type new node ID then enter: ");
       fflush(stdout);
       menuState->currentMenu = idMenu;
@@ -235,13 +237,13 @@ static void handleMenuMain(char ch, MenuState* menuState) {
     case 'a': changeMode(MODE_TDOA_ANCHOR2); break;   // A: FAST ANCHOR
     case 's': changeMode(MODE_SNIFFER); break;        // S: FAST SNIFFER
     case 'm':                                         // M: MODE SELECT FROM LIST
+      clearUart();
       printModeList();
       printf("Type 0-9 to choose new mode...\r\n");
       menuState->currentMenu = modeMenu;
       menuState->configChanged = false;
       break;
     case 'c':                                         // C: FAST CONFIGURATOR
-      currentUwbMode = uwbGetCurrentMode();
       if (currentUwbMode != MODE_CONFIGURATOR) {
         changeMode(MODE_CONFIGURATOR);
       }
@@ -255,6 +257,7 @@ static void handleMenuMain(char ch, MenuState* menuState) {
       }
       break;
     case 'r':                                         // R: RADIO SELECT FROM LIST
+      clearUart();
       printRadioModeList();
       printf("Type 0-9 to choose new mode...\r\n");
       menuState->currentMenu = radioMenu;
@@ -271,12 +274,14 @@ static void handleMenuMain(char ch, MenuState* menuState) {
       printUwbConfig();
       menuState->configChanged = false;
       break;
-    case 'p':                                         // P: POWER SETTINGS CHANGE
-         printPowerHelp();
-         menuState->currentMenu = powerMenu;
-         menuState->configChanged = false;
-         break;
+    case 'p':                                        // P: POWER SETTINGS CHANGE
+      clearUart();
+      printPowerHelp();
+      menuState->currentMenu = powerMenu;
+      menuState->configChanged = false;
+      break;
     case 'o':                                         // O: CHANGE ANCHOR POSTION
+      clearUart();
       printf("Enter anchor position (X Y Z):\r\n");
       printf("X: ");
       fflush(stdout);
@@ -285,6 +290,7 @@ static void handleMenuMain(char ch, MenuState* menuState) {
       break;
     case 'q':
       printf("RESETTING. . . \r\n");
+      HAL_Delay(DELAY_IN_MENU);
       NVIC_SystemReset();
       break;
     default:
@@ -307,11 +313,17 @@ static void handleMenuMode(char ch, MenuState* menuState) {
     case '9':
       changeMode(ch - '0');
       menuState->currentMenu = mainMenu;
+      HAL_Delay(DELAY_IN_MENU);
+      clearUart();
+      help();
       break;
     default:
       printf("Incorrect mode '%c'\r\n", ch);
       menuState->currentMenu = mainMenu;
       menuState->configChanged = false;
+      HAL_Delay(DELAY_IN_MENU);
+      clearUart();
+      help();
       break;
   }
 }
@@ -322,13 +334,20 @@ static void handleMenuRadio(char ch, MenuState* menuState) {
     case '1':
     case '2':
     case '3':
+      clearUart();
       changeRadioMode(ch - '0');
       menuState->currentMenu = mainMenu;
+      HAL_Delay(DELAY_IN_MENU);
+      clearUart();
+      help();
       break;
     default:
       printf("Incorrect mode '%c'\r\n", ch);
       menuState->currentMenu = mainMenu;
       menuState->configChanged = false;
+      HAL_Delay(DELAY_IN_MENU);
+      clearUart();
+      help();
       break;
   }
 }
@@ -363,6 +382,9 @@ static void handleMenuId(char ch, MenuState* menuState) {
         menuState->configChanged = false;
       }
       menuState->currentMenu = mainMenu;
+      HAL_Delay(DELAY_IN_MENU);
+      clearUart();
+      help();
       break;
     default:
       menuState->configChanged = false;
@@ -398,6 +420,8 @@ static void handleMenuPower(char ch, MenuState* menuState) {
     default:
       menuState->currentMenu = mainMenu;
       menuState->configChanged = false;
+      clearUart();
+      help();
       break;
   }
 }
@@ -440,7 +464,6 @@ static void handleMenuPos(char ch, MenuState* menuState) {
             uwbConfig->position[0] = tempX;
             uwbConfig->position[1] = tempY;
             uwbConfig->position[2] = tempZ;
-            uwbConfig->positionEnabled = true;
             
             // Сохранение изменений в EEPROM
             printf("\r\nSetting anchor position to: %04.1f %04.1f %04.1f\r\n", tempX, tempY, tempZ); // Вывод после обновления всех координат
@@ -454,6 +477,8 @@ static void handleMenuPos(char ch, MenuState* menuState) {
 
             menuState->configChanged = true; // Устанавливаем флаг, чтобы сообщить об изменении
             menuState->currentMenu = mainMenu;
+            HAL_Delay(DELAY_IN_MENU);
+            clearUart();
             help();
             break; 
         }
@@ -469,6 +494,7 @@ static void handleMenuPos(char ch, MenuState* menuState) {
 static void handleMenuConfigurator(char ch, MenuState *menuState) {
   switch(ch) {
     case '1':
+      clearUart();
       printf("SET NEW POS\r\n");
       printf("id: ");
       fflush(stdout);
@@ -476,10 +502,12 @@ static void handleMenuConfigurator(char ch, MenuState *menuState) {
       menuState->configChanged = false;
       break;
     case '2':
+      clearUart();
       printf("RESETTING ALL ANCHORS. . .\r\n");
       newServicePacket->action = LPP_SHORT_REBOOT;
       newServicePacket->destinationAddress = 0xff;
       sendServiceData(newServicePacket);
+      HAL_Delay(DELAY_IN_MENU);
       clearUart();
       printConfiguratorOptions();
       menuState->configChanged = false;
@@ -545,6 +573,7 @@ static void handleMenuRemotePos(char ch, MenuState *menuState) {
             menuState->configChanged = false; // Устанавливаем флаг, чтобы сообщить об изменении
             menuState->currentMenu = configuratorMenu;
 
+            HAL_Delay(DELAY_IN_MENU);
             clearUart();
             printConfiguratorOptions();
             break; 
@@ -650,6 +679,9 @@ static void restConfig() {
   } else {
     printf("ERROR\r\n");
   }
+  HAL_Delay(DELAY_IN_MENU);
+  clearUart();
+  help();
 }
 
 static void changeAddress(uint8_t addr) {
@@ -733,19 +765,33 @@ inline void printConfigLCD()
   {
     cached_config = uwbGetConfig();
   }
-  ssd1306_Fill_Area(0, 0, 128, 47, Black);
 
   uint8_t device_adress = cached_config->address[0];
   wchar_t address[13];
   wchar_t wmode_str[16];
   wchar_t pos[20];
 
+  switch(currentUwbMode) {  
+    case MODE_SNIFFER:
+    case MODE_CONFIGURATOR:  // Используем 3 строку под "индикаторы"
+      ssd1306_Fill_Area(0, 0, 128, 31, Black);
+      break;
+
+    case MODE_TDOA_ANCHOR3:
+    case MODE_TDOA_ANCHOR2:  // Используем 3 строку под вывод позиции
+      ssd1306_Fill_Area(0, 0, 128, 47, Black);
+      swprintf(pos, 20, L"%04.1f %04.1f %04.1f", cached_config->position[0], cached_config->position[1], cached_config->position[2]);
+      ssd1306_draw_string(3, 34, 128, 30, &Font, pos, White);
+      break;
+    default:
+      break;
+  }
+
   swprintf(address, 13, L"Адрес: 0x%X%s\n", device_adress, addressChanged ? L"!" : L"");
   swprintf(wmode_str, 16, L"%s%s", uwbAlgorithmName(cached_config->mode), modeChanged ? L"!" : L"");
-  swprintf(pos, 20, L"%04.1f %04.1f %04.1f", cached_config->position[0], cached_config->position[1], cached_config->position[2]);
   ssd1306_draw_string(0, 0, 128, 30, &Font, address, White);
   ssd1306_draw_string(0, 17, 128, 30, &Font, wmode_str, White);
-  ssd1306_draw_string(3, 34, 128, 30, &Font, pos, White);
+
   // Horizontal lines
   ssd1306_DrawLine(0, 14, 128, 14, White);
   ssd1306_DrawLine(0, 31, 128, 31, White);
@@ -767,26 +813,21 @@ static void printUwbConfig()
 
   // Printing UWB configuration
   struct uwbConfig_s *uwbConfig = uwbGetConfig();
-
+  printf("==========NODE SETTINGS==========\r\n");
   printf("CONFIG\t: Address is 0x%X\r\n", uwbConfig->address[0]);
   printf("CONFIG\t: Mode is %s\r\n", uwbAlgorithmName(uwbConfig->mode));
-  printf("CONFIG\t: Tag mode anchor list (%i): ", uwbConfig->anchorListSize);
-  for (i = 0; i < uwbConfig->anchorListSize; i++) {
-    printf("0x%02X ", uwbConfig->anchors[i]);
-  }
-  printf("\r\n");
-  printf("CONFIG\t: Anchor position enabled: %s\r\n",
-         uwbConfig->positionEnabled?"true":"false");
-  if (uwbConfig->positionEnabled) {
-    printf("CONFIG\t: Anchor position: %f %f %f\r\n", uwbConfig->position[0],
+  printf("CONFIG\t: Anchor position: %f %f %f\r\n", uwbConfig->position[0],
                                                       uwbConfig->position[1],
                                                       uwbConfig->position[2]);
-  }
+  printf("\r\n");
+  printf("==========POWER SETTINGS==========\r\n");
   printf("CONFIG\t: SmartPower enabled: %s\r\n", uwbConfig->smartPower?"True":"False");
   printf("CONFIG\t: Force TX power: %s\r\n", uwbConfig->forceTxPower?"True":"False");
   if(uwbConfig->forceTxPower) {
     printf("CONFIG\t: TX power setting: %08X\r\n", (unsigned int)uwbConfig->txPower);
   }
+  printf("\r\n");
+  printf("==========UWB SETTINGS==========\r\n");
   printf("CONFIG\t: Bitrate: %s\r\n", uwbConfig->lowBitrate?"low":"normal");
   printf("CONFIG\t: Preamble: %s\r\n", uwbConfig->longPreamble?"long":"normal");
 
