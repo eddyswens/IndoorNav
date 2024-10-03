@@ -92,9 +92,9 @@ static void main_task(void *pvParameters) {
   MX_USB_DEVICE_Init();
 
   // Light up all LEDs to test
-  ledOn(ledRanging);
+  ledOn(ledRx);
+  ledOn(ledTx);
   ledOn(ledSync);
-  ledOn(ledMode);
   
   buttonInit(buttonIdle);
 
@@ -148,9 +148,9 @@ for (uint8_t i = 0; i < 3; ++i) {
   printUwbConfig();
   HAL_Delay(500);
 
-  ledOff(ledRanging);
+  ledOff(ledRx);
+  ledOff(ledTx);
   ledOff(ledSync);
-  ledOff(ledMode);
 
   printf("SYSTEM\t: Node started ...\r\n");
   printf("SYSTEM\t: Press 'h' for help.\r\n");
@@ -617,7 +617,7 @@ static void handleButton(void) {
       new_mode = 0;
     }
     changeMode(new_mode);
-    ledBlink(ledRanging, true);
+    // ledBlink(ledRanging, true);
      modeChanged = true;
     // TODO: Implement and remove ledblink
   }  else if (be == buttonLongPress) {
@@ -628,7 +628,7 @@ static void handleButton(void) {
     }
     changeAddress(new_address);
     addressChanged = true;
-    ledBlink(ledSync, true);
+    // ledBlink(ledSync, true);
     // TODO: Implement and remove ledblink
   }
 
@@ -746,10 +746,18 @@ inline void printConfigLCD()
   ssd1306_draw_string(0, 0, 128, 30, &Font, address, White);
   ssd1306_draw_string(0, 17, 128, 30, &Font, wmode_str, White);
   ssd1306_draw_string(3, 34, 128, 30, &Font, pos, White);
+  // Horizontal lines
   ssd1306_DrawLine(0, 14, 128, 14, White);
   ssd1306_DrawLine(0, 31, 128, 31, White);
   ssd1306_DrawLine(0, 47, 128, 47, White);
   ssd1306_DrawLine(0, 64, 128, 64, White);
+  // Vertical lines
+  
+  ssd1306_DrawLine(19, 47, 19, 64, White);
+  ssd1306_DrawLine(38, 47, 38, 64, White);
+  ssd1306_DrawLine(77, 47, 77, 64, White);
+  
+
   ssd1306_UpdateScreen(&hi2c1);
 }
 

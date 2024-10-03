@@ -140,11 +140,13 @@ static void rxcallback(dwDevice_t *dev) {
     memcpy(&pkTxTime, rangePacket->timestamps[sourceId], TS_TX_SIZE);
     tdmaFrameStart.full = rxTime.full - (pkTxTime.full - TDMA_LAST_FRAME(pkTxTime.full));
     synced = true;
+    ledOn(ledSync);
   }
 
   if (serviceToSent && synced) {
     if (isNeedSendServiceToId(sourceId)) {
       synced = false;
+      ledOff(ledSync);
       transmitServicePacket(dev, payloadSize, sourceId);
     }
     updateSendServiceFlag();
@@ -207,8 +209,6 @@ static uint32_t ConfiguratorOnEvent(dwDevice_t *dev, uwbEvent_t event)
 
 static void ConfiguratorInit(uwbConfig_t * newconfig, dwDevice_t *dev)
 {
-  // Set the LED for anchor mode
-  //ledOn(ledMode);
   config = *newconfig;
 
   // Initialize the packet in the TX buffer
@@ -218,9 +218,6 @@ static void ConfiguratorInit(uwbConfig_t * newconfig, dwDevice_t *dev)
   memcpy(txPacket.sourceAddress, base_address, 8);  // базовый
   txPacket.sourceAddress[0] = config.address[0];  
   memcpy(txPacket.destAddress, base_address, 8);
-  // txPacket.destAddress[0] = 0xff;
-
-  // onEvent is going to be called with eventTimeout which will start ranging
 }
 
 uwbAlgorithm_t uwbConfiguratorAlgorithm = {

@@ -14,9 +14,9 @@
 #define N_LEDS 3
 
 typedef enum {
-  ledRanging=0,
-  ledSync,
-  ledMode
+  ledRx=0,
+  ledTx,
+  ledSync
 } led_e;
 
 

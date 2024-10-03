@@ -1,3 +1,17 @@
+/*
+ *  _____________  ____________   _  __
+   / ___/ __/ __ \/ __/ ___/ _ | / |/ /
+  / (_ / _// /_/ /\ \/ /__/ __ |/    /   
+  \___/___/\____/___/\___/_/ |_/_/|_/  
+ * 
+ * Geoscan UWB firmware
+ *
+ * Copyright (C) 2024 Geoscan LLC
+ * https://www.geoscan.ru
+ * 
+ * uwb_tdoa_anchor2.c - TDoA2 algorithm script
+ */
+
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
@@ -8,6 +22,7 @@
 
 #include "cfg.h"
 #include "lpp.h"
+#include "led.h"
 
 #define debug(...) // printf(__VA_ARGS__)
 
@@ -101,6 +116,7 @@ static void handleFailedRx(dwDevice_t *dev)
   // watchdog can take decision as of TDMA resynchronisation
   if (ctx.slot == 0) {
     ctx.state = syncTdmaState;
+    ledOff(ledSync);
   }
 }
 
@@ -304,6 +320,7 @@ static uint32_t slotStep(dwDevice_t *dev, uwbEvent_t event)
           handleServicePacket(dev);
           // The service packet handling time desynchronized us, lets resynch
           ctx.state = syncTdmaState;
+          ledOff(ledSync);
           return 0;
         }
         setupRx(dev);
@@ -321,6 +338,7 @@ static void tdoa2Init(uwbConfig_t * config, dwDevice_t *dev)
 {
   ctx.anchorId = config->address[0];
   ctx.state = syncTdmaState;
+  ledOff(ledSync);
   ctx.slot = NSLOTS-1;
   ctx.nextSlot = 0;
   memset(ctx.txTimestamps, 0, sizeof(ctx.txTimestamps));
@@ -337,6 +355,7 @@ static uint32_t tdoa2UwbEvent(dwDevice_t *dev, uwbEvent_t event)
       dwGetSystemTimestamp(dev, &ctx.tdmaFrameStart);
       ctx.tdmaFrameStart.full = TDMA_LAST_FRAME(ctx.tdmaFrameStart.full) + 2*TDMA_FRAME_LEN;
       ctx.state = synchronizedState;
+      ledOn(ledSync);
       setupTx(dev);
 
       ctx.slotState = slotTxDone;
@@ -363,6 +382,7 @@ static uint32_t tdoa2UwbEvent(dwDevice_t *dev, uwbEvent_t event)
               setupTx(dev);
               ctx.slotState = slotRxDone;
               ctx.state = synchronizedState;
+              ledOn(ledSync);
               updateSlot();
             } else {
               // Start the receiver waiting for a packet from anchor 0

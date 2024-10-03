@@ -24,7 +24,7 @@ struct {
   {.algorithm = &uwbSnifferAlgorithm,   .name = "Sniffer"},
   {.algorithm = &uwbTdoa2Algorithm,     .name = "TDoA Anchor v2"},
   {.algorithm = &uwbTdoa3Algorithm,     .name = "TDoA Anchor v3"},
-  {.algorithm = &uwbConfiguratorAlgorithm,     .name = "USB Configurator"},
+  {.algorithm = &uwbConfiguratorAlgorithm,     .name = "Usb Configurator"},
   {NULL, NULL},
 };
 

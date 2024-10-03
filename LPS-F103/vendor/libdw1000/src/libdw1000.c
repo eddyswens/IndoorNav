@@ -22,6 +22,7 @@
 #include <math.h>
 
 #include "libdw1000.h"
+#include "led.h"
 
 
 static const uint8_t BIAS_500_16_ZERO = 10;
@@ -1271,6 +1272,7 @@ void dwHandleInterrupt(dwDevice_t *dev) {
 		(*dev->handleError)(dev);
 	}
 	if(dwIsTransmitDone(dev) && dev->handleSent != 0) {
+		ledBlink(ledTx, true);
 		dwClearTransmitStatus(dev);
 		(*dev->handleSent)(dev);
 	}
@@ -1299,6 +1301,7 @@ void dwHandleInterrupt(dwDevice_t *dev) {
 			}
 		}
 	} else if(dwIsReceiveDone(dev) && dev->handleReceived != 0) {
+		ledBlink(ledRx, true);
 		dwClearReceiveStatus(dev);
 		(*dev->handleReceived)(dev);
 		if(dev->permanentReceive) {

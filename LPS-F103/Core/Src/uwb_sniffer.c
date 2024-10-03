@@ -19,6 +19,7 @@ static uint32_t SnifferOnEvent(dwDevice_t *dev, uwbEvent_t event)
   static packet_t rxPacket;
 
   if (event == eventPacketReceived) {
+    ledOn(ledSync);
     int dataLength = dwGetDataLength(dev);
     dwGetRawReceiveTimestamp(dev, &arrival);
     dwGetData(dev, (uint8_t*)&rxPacket, dataLength);
@@ -37,6 +38,7 @@ static uint32_t SnifferOnEvent(dwDevice_t *dev, uwbEvent_t event)
     printf("\r\n");
 
   } else {
+    ledOff(ledSync);
     dwNewReceive(dev);
     dwSetDefaults(dev);
     dwStartReceive(dev);
@@ -47,9 +49,7 @@ static uint32_t SnifferOnEvent(dwDevice_t *dev, uwbEvent_t event)
 
 static void SnifferInit(uwbConfig_t * newconfig, dwDevice_t *dev)
 {
-  // Set the LED for anchor mode
-  //ledBlink(ledMode, false);
-  
+
 }
 
 uwbAlgorithm_t uwbSnifferAlgorithm = {

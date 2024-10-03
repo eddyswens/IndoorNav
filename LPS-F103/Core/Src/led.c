@@ -1,19 +1,6 @@
 #include <stm32f1xx_hal.h>
-#include <stm32f1xx_hal_gpio.h>
 #include "ssd1306.h"
 #include "led.h"
-
-typedef struct {
-  uint32_t pin;
-  GPIO_TypeDef * port;
-} led_t;
-
-
-static const led_t leds_revc[] = {
-    [ledRanging] = {.pin = GPIO_PIN_0, .port = GPIOC}, //красный, при запуске
-    [ledSync] = {.pin = GPIO_PIN_1, .port = GPIOC}, //зелёный? не вызывается
-    [ledMode] = {.pin = GPIO_PIN_2, .port = GPIOC} //синий, большую часть времени горит
-};
 
 static bool isBlinking[N_LEDS];
 static uint32_t disableTime[N_LEDS];
@@ -24,16 +11,15 @@ void ledInit(void) {
 
 static inline void setLed(led_e led, bool value)
 {
-  HAL_GPIO_WritePin(leds_revc[led].port, leds_revc[led].pin, value?GPIO_PIN_SET:GPIO_PIN_RESET);
     switch (led) {
-    case ledRanging:
-        ssd1306_draw_string(0, 49, 128, 30, &Font, L"Ranging", value?White:Black);
+    case ledRx:
+        ssd1306_draw_string(0, 49, 128, 30, &Font, L"Rx", value?White:Black);
         break;
-    case ledMode:
-       // ssd1306_draw_string(0, 49, 128, 30, &Font, L"Mode", value?White:Black);
+    case ledTx:
+        ssd1306_draw_string(20, 49, 128, 30, &Font, L"Tx", value?White:Black);
         break;
     case ledSync:
-        ssd1306_draw_string(0, 49, 128, 30, &Font, L"Sync", value?White:Black);
+        ssd1306_draw_string(39, 49, 128, 30, &Font, L"Sync", value?White:Black);
         break;
   }
 }
