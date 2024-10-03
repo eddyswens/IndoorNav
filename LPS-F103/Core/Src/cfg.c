@@ -298,15 +298,3 @@ bool cfgWriteFP32list(ConfigField field, float list[], uint8_t length) {
     readData();
     return true;
 }
-
-static bool binaryMode = false;
-
-void cfgSetBinaryMode(bool enable)
-{
-  binaryMode = enable;
-}
-
-bool cfgIsBinaryMode()
-{
-  return binaryMode;
-}

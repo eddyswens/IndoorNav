@@ -40,8 +40,4 @@ bool cfgReadFP32list(ConfigField field, float list[], uint8_t length);
 
 bool cfgWriteFP32list(ConfigField field, float list[], uint8_t length);
 
-void cfgSetBinaryMode(bool enable);
-
-bool cfgIsBinaryMode();
-
 #endif

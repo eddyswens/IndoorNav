@@ -68,6 +68,7 @@ static void printRadioModeList();
 static void printMode();
 static void printRadioMode();
 static void printPowerHelp();
+static void printUwbConfig();
 static void printConfiguratorOptions();
 static void help();
 // static void bootload(void);
@@ -80,7 +81,6 @@ typedef struct {
 } MenuState;
 
 static void main_task(void *pvParameters) {
-  int i;
   char ch;
   bool selftestPasses = true;
 
@@ -102,6 +102,7 @@ static void main_task(void *pvParameters) {
 
   printf("\r\n\r\n====================\r\n");
 
+// Print CPU id
 printf("SYSTEM\t: CPU-ID: ");
 for (uint8_t i = 0; i < 3; ++i) {
   printf("%08X", uid[i]); 
@@ -116,7 +117,7 @@ for (uint8_t i = 0; i < 3; ++i) {
 
 // Init LCD
   if (ssd1306_Init(&hi2c1) != 0) {
-     printf("TEST\t: Problem with SSD1306!\r\n");
+    printf("TEST\t: Problem with SSD1306!\r\n");
    }
   ssd1306_GeoscanLogo();
   ssd1306_UpdateScreen(&hi2c1);
@@ -128,7 +129,7 @@ for (uint8_t i = 0; i < 3; ++i) {
   testSupportReport(&selftestPasses, eepromTest());
   cfgInit();
 
-  // Initialising radio
+  // Initialising UWB
   testSupportPrintStart("Initialize UWB ");
   uwbInit();
   if (uwbTest()) {
@@ -138,38 +139,14 @@ for (uint8_t i = 0; i < 3; ++i) {
     selftestPasses = false;
   }
 
+  // If something important failed
   if (!selftestPasses) {
     printf("TEST\t: One or more self-tests failed, blocking startup!\r\n");
     usbcommSetSystemStarted(true);
   }
 
-
-  // Printing UWB configuration
-  struct uwbConfig_s *uwbConfig = uwbGetConfig();
-
-  printf("CONFIG\t: Address is 0x%X\r\n", uwbConfig->address[0]);
-  printf("CONFIG\t: Mode is %s\r\n", uwbAlgorithmName(uwbConfig->mode));
-  printf("CONFIG\t: Tag mode anchor list (%i): ", uwbConfig->anchorListSize);
-  for (i = 0; i < uwbConfig->anchorListSize; i++) {
-    printf("0x%02X ", uwbConfig->anchors[i]);
-  }
-  printf("\r\n");
-  printf("CONFIG\t: Anchor position enabled: %s\r\n",
-         uwbConfig->positionEnabled?"true":"false");
-  if (uwbConfig->positionEnabled) {
-    printf("CONFIG\t: Anchor position: %f %f %f\r\n", uwbConfig->position[0],
-                                                      uwbConfig->position[1],
-                                                      uwbConfig->position[2]);
-  }
-  printf("CONFIG\t: SmartPower enabled: %s\r\n", uwbConfig->smartPower?"True":"False");
-  printf("CONFIG\t: Force TX power: %s\r\n", uwbConfig->forceTxPower?"True":"False");
-  if(uwbConfig->forceTxPower) {
-    printf("CONFIG\t: TX power setting: %08X\r\n", (unsigned int)uwbConfig->txPower);
-  }
-  printf("CONFIG\t: Bitrate: %s\r\n", uwbConfig->lowBitrate?"low":"normal");
-  printf("CONFIG\t: Preamble: %s\r\n", uwbConfig->longPreamble?"long":"normal");
-
-      HAL_Delay(500);
+  printUwbConfig();
+  HAL_Delay(500);
 
   ledOff(ledRanging);
   ledOff(ledSync);
@@ -284,12 +261,14 @@ static void handleMenuMain(char ch, MenuState* menuState) {
       menuState->configChanged = false;
       break;
     case 'd': restConfig(); break;                    // D: RESET CONFIG TO DEFAULTS
-    case 'h':                                         // H: PRINT HELP
+    case 'h':
+      clearUart();                                         // H: PRINT HELP
       help();
       menuState->configChanged = false;
       break;
-    case 'b':                                         // B: BINARY MODE FOR SNIFFER
-      cfgSetBinaryMode(true);
+    case 'b':                                         // B: 
+      clearUart();
+      printUwbConfig();
       menuState->configChanged = false;
       break;
     case 'p':                                         // P: POWER SETTINGS CHANGE
@@ -774,6 +753,37 @@ inline void printConfigLCD()
   ssd1306_UpdateScreen(&hi2c1);
 }
 
+static void printUwbConfig()
+{
+  int i;
+
+  // Printing UWB configuration
+  struct uwbConfig_s *uwbConfig = uwbGetConfig();
+
+  printf("CONFIG\t: Address is 0x%X\r\n", uwbConfig->address[0]);
+  printf("CONFIG\t: Mode is %s\r\n", uwbAlgorithmName(uwbConfig->mode));
+  printf("CONFIG\t: Tag mode anchor list (%i): ", uwbConfig->anchorListSize);
+  for (i = 0; i < uwbConfig->anchorListSize; i++) {
+    printf("0x%02X ", uwbConfig->anchors[i]);
+  }
+  printf("\r\n");
+  printf("CONFIG\t: Anchor position enabled: %s\r\n",
+         uwbConfig->positionEnabled?"true":"false");
+  if (uwbConfig->positionEnabled) {
+    printf("CONFIG\t: Anchor position: %f %f %f\r\n", uwbConfig->position[0],
+                                                      uwbConfig->position[1],
+                                                      uwbConfig->position[2]);
+  }
+  printf("CONFIG\t: SmartPower enabled: %s\r\n", uwbConfig->smartPower?"True":"False");
+  printf("CONFIG\t: Force TX power: %s\r\n", uwbConfig->forceTxPower?"True":"False");
+  if(uwbConfig->forceTxPower) {
+    printf("CONFIG\t: TX power setting: %08X\r\n", (unsigned int)uwbConfig->txPower);
+  }
+  printf("CONFIG\t: Bitrate: %s\r\n", uwbConfig->lowBitrate?"low":"normal");
+  printf("CONFIG\t: Preamble: %s\r\n", uwbConfig->longPreamble?"long":"normal");
+
+}
+
 static void printMode() {
   uint8_t mode;
 
@@ -856,21 +866,26 @@ static void printConfiguratorOptions()
 
 static void help() {
   printf("Help\r\n");
-  printf("-------------------\r\n");
-  printf("0-9 - set address (node ID)\r\n");
-  printf("i   - set node ID from 0 to 255\r\n");
-  printf("a   - anchor mode\r\n");
-  printf("c   - USB configurator mode\r\n");
-  printf("s   - sniffer mode\r\n");
+  printf("----------NODE ADDRESS & POSITION----------\r\n");
+  printf("0-9 - Set node ID (address)\r\n");
+  printf("i   - Set node ID from 0 to 255 (address)\r\n");
+  printf("o   - Set node position (X Y Z)\r\n");
+  printf("\r\n");
+  printf("----------NODE MODE----------\r\n");
+  printf("a   - Anchor mode\r\n");
+  printf("c   - Usb configurator mode\r\n");
+  printf("s   - Sniffer mode\r\n");
   printf("m   - List and change mode\r\n");
+  printf("\r\n");
+  printf("----------NODE HARDWARE SETTINGS----------\r\n");
   printf("r   - List and change UWB radio settings\r\n");
-  printf("p   - change power mode\r\n");
-  printf("o   - set anchor position (X Y Z)\r\n"); 
-  printf("d   - reset configuration\r\n");
-  printf("q   - device reset\r\n");
+  printf("p   - Change power mode\r\n");
+  printf("\r\n");
+  printf("----------GENERAL COMMANDS----------\r\n");
+  printf("d   - Reset configuration\r\n");
+  printf("q   - Device reset\r\n");
+  printf("b   - Show UWB config\r\n");
   printf("h   - This help\r\n");
-  printf("---- For machine only\r\n");
-  printf("b   - Switch to binary mode (sniffer only)\r\n");
 }
 
 /*---------------------------------------------------
