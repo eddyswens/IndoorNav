@@ -15,10 +15,11 @@
 
 #include "uart_packet_send.h"
 
-
 // Вычисление чек-суммы
-uint8_t fastcrc8_update(uint8_t aChecksum, const void *aBuffer, size_t aLength) {
-  static const uint8_t table[] = {
+uint8_t fastcrc8_update(uint8_t aChecksum, const void *aBuffer, size_t aLength) 
+{
+  static const uint8_t table[] = 
+  {
     0x00, 0x5E, 0xBC, 0xE2, 0x61, 0x3F, 0xDD, 0x83,
     0xC2, 0x9C, 0x7E, 0x20, 0xA3, 0xFD, 0x1F, 0x41,
     0x9D, 0xC3, 0x21, 0x7F, 0xFC, 0xA2, 0x40, 0x1E,
@@ -55,37 +56,40 @@ uint8_t fastcrc8_update(uint8_t aChecksum, const void *aBuffer, size_t aLength) 
 
   const uint8_t *buffer = (const uint8_t *)aBuffer;
 
-  while (aLength--) {
+  while (aLength--) 
+  {
     aChecksum = table[aChecksum ^ *buffer++];
   } 
 
   return aChecksum;
 }
 
-
-uint8_t calculateEventCRC(const Event* event) {
+uint8_t calculateEventCRC(const Event* event) 
+{
   return fastcrc8_update(0, &event->size, event->size + 3); 
 }
 
-//Функция обработки вызова пакета. На приёме переменная, определяющая тип пакета, и структура с которой мы будем брать даные
-void packetHandler(uint8_t eventType, void* EventData) {
+// Функция обработки вызова пакета. На приёме переменная, определяющая тип пакета, и структура с которой мы будем брать даные
+void packetHandler(uint8_t eventType, void* EventData) 
+{
     size_t packetSize = 0;
     uint8_t* packet = createPacket(eventType, EventData, &packetSize);
 
     if (packet != NULL) 
     {
-        //После сборки пакета отправляем его, packetSize был обновлён через указатель в createPacket
+        // После сборки пакета отправляем его, packetSize был обновлён через указатель в createPacket
         sendTelemetryPacket(packet, packetSize);
         free(packet);
     }
 }
 
-uint8_t* createPacket(uint8_t eventType, void* EventData, size_t* packetSize) {
+uint8_t* createPacket(uint8_t eventType, void* EventData, size_t* packetSize) 
+{
     uint8_t* packet = NULL;
     *packetSize = 0; 
     Event *eventHeader = NULL; // Указатель на заголовок события
     
-    switch (eventType) //Проверка на тип пакета
+    switch (eventType) // Проверка на тип пакета
     {
         case TELEMETRY_EVENT: 
         {
@@ -93,13 +97,13 @@ uint8_t* createPacket(uint8_t eventType, void* EventData, size_t* packetSize) {
 
            *packetSize = sizeof(TelemetryEvent) + 1;  // Выделяем память под пакет + чек-сумму
 
-            packet = (uint8_t*)malloc(*packetSize); //Выделяем память пакету подстать размеру структуры
+            packet = (uint8_t*)malloc(*packetSize); //Выделяем память пакету под стать размеру структуры
 
             if (packet == NULL)  return NULL; // Обработка ошибки выделения памяти
 
             TelemetryEvent* packet_event = (TelemetryEvent*)packet; // Приводим к типу TelemetryEvent*
 
-            eventHeader = &packet_event->e; //ссылаем ранее созданный указатель Event на Event этой структуры
+            eventHeader = &packet_event->e; // Cсылаем ранее созданный указатель Event на Event этой структуры
 
             // Заполнение полей
             packet_event->orientation = event->orientation;
@@ -139,9 +143,9 @@ uint8_t* createPacket(uint8_t eventType, void* EventData, size_t* packetSize) {
         }
     }
 
-    eventHeader->refs = 0xFE; //Общие данные: указатель на начало пакета
+    eventHeader->refs = 0xFE; // Общие данные: указатель на начало пакета
     eventHeader->addr = 0x00;
-    eventHeader->num = eventType; //Общие данные: тип пакета
+    eventHeader->num = eventType; // Общие данные: тип пакета
     eventHeader->size = *packetSize - sizeof(Event) - 1; // Коррекция размера пакета
 
     uint8_t crc = calculateEventCRC(eventHeader); // Вычисление чек-суммы
@@ -151,40 +155,7 @@ uint8_t* createPacket(uint8_t eventType, void* EventData, size_t* packetSize) {
     return packet;
 }
 
-void sendTelemetryPacket(uint8_t* packet, size_t packetsize) {
-    if (packet != NULL) { // Проверка на NULL
-        HAL_UART_Transmit(&huart1, packet, packetsize, HAL_MAX_DELAY);
-    }
+void sendTelemetryPacket(uint8_t* packet, size_t packetsize) 
+{
+    if (packet != NULL) HAL_UART_Transmit(&huart1, packet, packetsize, HAL_MAX_DELAY); // Непосредственная отправка и проверка на NULL
 }
-
-// // Старая функция для создания статического пакета TelemetryEvent
-// TelemetryEvent createStaticTelemetryPacket(uint8_t* packet) {
-//   TelemetryEvent telemetry;
-
-//   telemetry.e.refs = 0xFE;
-//   telemetry.e.size = sizeof(TelemetryEvent) - sizeof(Event);
-//   telemetry.e.addr = 0x00;
-
-//   // Заполнение структуры TelemetryEvent статическими значениями
-//   telemetry.orientation = 0xEB785817; // Пример: roll=88, pitch=23, yaw=235
-//   telemetry.pos[0] = 5;          // X 
-//   telemetry.pos[1] = 10;          // Y
-//   telemetry.pos[2] = 7;          // Z
-//   telemetry.vel[0] = 0;          // X velocity
-//   telemetry.vel[1] = 0;          // Y velocity
-//   telemetry.vel[2] = 0;          // Z velocity
-//   telemetry.voltage = 0;      // 3.2V
-//   telemetry.beacons = 0;
-//   telemetry.status = 0;
-//   telemetry.posError = 28;
-
-//   uint8_t crc = calculateEventCRC(&telemetry.e);
-  
-  
-//     telemetry.e.num = 0x02;
-// //telemetry.checksum= crc;
-
-//   // Копирование структуры в массив байт
-//   memcpy(packet, &telemetry, sizeof(TelemetryEvent)); 
-//   return telemetry;
-// }
