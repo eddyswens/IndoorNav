@@ -49,11 +49,13 @@ The implementation must handle
 // #include "debug.h"
 
 #include "tdoaEngine.h"
-// #include "tdoaStats.h"
 #include "clockCorrectionEngine.h"
 #include "uwb.h"
 #include "usart.h"
 #include "uart_packet_send.h"
+
+TelemetryEvent telemetry;
+BeaconAmplitude amplitude;
 
 // **Инициализирует движок TDoA, устанавливая начальные значения и сохраняя важные параметры.**
 // 
@@ -423,6 +425,31 @@ void tdoaEngineProcessPacket(tdoaEngineState_t* engineState, tdoaAnchorContext_t
   tdoaEngineProcessPacketFiltered(engineState, anchorCtx, txAn_in_cl_An, rxAn_by_T_in_cl_T, false, 0);
 }
 
+  // **Функция заполнения структур данными, в будущем будет удалена.**
+void dummyUpdateStructure()
+{
+  // Временное заполнение структуры телеметрии, в будущем данные будут браться из математики вычисления позции
+   telemetry.orientation=5;
+   telemetry.pos[0]=51;
+   telemetry.pos[1]=4;
+   telemetry.pos[2]=3;
+   telemetry.vel[0]=5;
+   telemetry.vel[1]=5;
+   telemetry.vel[2]=5;
+   telemetry.voltage=5;
+   telemetry.beacons=5;
+   telemetry.status=5;
+   telemetry.status=5;
+   telemetry.posError=4;
+
+  // Временное заполнение структуры амлитуд, в будущем данные будут браться из математики вычисления позции
+   amplitude.amp[0]=10;
+   amplitude.amp[1]=20;
+   amplitude.amp[2]=40;
+   amplitude.amp[3]=10;
+
+}
+
 // **Обрабатывает пакет данных от якоря с возможностью фильтрации по ID якоря.**
 // 
 // `engineState`: Указатель на структуру состояния движка TDoA.
@@ -433,22 +460,18 @@ void tdoaEngineProcessPacket(tdoaEngineState_t* engineState, tdoaAnchorContext_t
 // `excludedId`: ID якоря, который нужно исключить, если `doExcludeId` равен `true`.
 // 
 // **Возвращает:** `true`, если измерение времени считается надежным, `false` в противном случае.
-
 bool tdoaEngineProcessPacketFiltered(tdoaEngineState_t* engineState, tdoaAnchorContext_t* anchorCtx, const int64_t txAn_in_cl_An, const int64_t rxAn_by_T_in_cl_T, const bool doExcludeId, const uint8_t excludedId) {
-
-  // TagPosition pos; //временная заглушка, отсюда отправляются определённые данные как пакет по UART
-  // pos.x=12;
-  // pos.y=23;
-  // pos.z=77;
-  // pos.orientation = 0xEB785817;
-  // packetHandler(TELEMETRY_EVENT, &pos);
 
   // Обновляет коррекцию часов для якоря, используя данные из пакета 
   // (время передачи и приема). 
   // Функция `updateClockCorrection` возвращает `true`, если 
   // измерение времени считается надежным.
-//   bool timeIsGood = updateClockCorrection(anchorCtx, txAn_in_cl_An, rxAn_by_T_in_cl_T, &engineState->stats);
+  // bool timeIsGood = updateClockCorrection(anchorCtx, txAn_in_cl_An, rxAn_by_T_in_cl_T, &engineState->stats);
   bool timeIsGood = updateClockCorrection(anchorCtx, txAn_in_cl_An, rxAn_by_T_in_cl_T);
+
+    // Отправка структур по UART, заглушка.
+   packetHandler(TELEMETRY_EVENT, &telemetry);
+   packetHandler(BEACON_AMPLITUDE_EVENT, &amplitude);
 
   // Если измерение времени надежное...
   if (timeIsGood) { 
@@ -469,8 +492,7 @@ bool tdoaEngineProcessPacketFiltered(tdoaEngineState_t* engineState, tdoaAnchorC
 
     
       // в очередь для отправки в модуль оценки местоположения.
-    // printf("Diff between anchor %x (%04.1f %04.1f %04.1f), and %x (%04.1f %04.1f %04.1f) is %lf. \r\n", anchorCtx->anchorInfo->id,  anchorCtx->anchorInfo->position.x, anchorCtx->anchorInfo->position.y, anchorCtx->anchorInfo->position.z, otherAnchorCtx.anchorInfo->id, otherAnchorCtx.anchorInfo->position.x, otherAnchorCtx.anchorInfo->position.y, otherAnchorCtx.anchorInfo->position.z, tdoaDistDiff);
-      enqueueTDOA(&otherAnchorCtx, anchorCtx, tdoaDistDiff, engineState);
+     // printf("%d %d %.3f %.3f %.3f %.3f %.3f %.3f %lf \r\n", anchorCtx->anchorInfo->id, otherAnchorCtx.anchorInfo->id, anchorCtx->anchorInfo->position.x, anchorCtx->anchorInfo->position.y, anchorCtx->anchorInfo->position.z,otherAnchorCtx.anchorInfo->position.x, otherAnchorCtx.anchorInfo->position.y, otherAnchorCtx.anchorInfo->position.z, tdoaDistDiff);
     }
   }
   // Возвращает флаг надежности измерения времени.

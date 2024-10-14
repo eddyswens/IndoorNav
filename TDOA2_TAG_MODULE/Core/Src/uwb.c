@@ -2,7 +2,6 @@
 #include "spi.h"
 #include "gpio.h"
 #include "stm32f1xx.h"
-#include "uart_packet_send.h"
 
 #include "queue.h"
 
@@ -397,17 +396,11 @@ void locoDeckSetRangingState(const uint16_t newState)
 void dwStart()
 {
     dwm1000Init();
+    
+    dummyUpdateStructure(); // Заглушка! Этого не должно здесь быть.
 }
 
 void dwLoop()
 {
    uwbTask(); 
-
-     TagPosition pos; //временная заглушка, отсюда отправляются определённые данные как пакет по UART
-  pos.x=52;
-  pos.y=33;
-  pos.z=27;
-  pos.orientation = 0xEB785817;
-  packetHandler(TELEMETRY_EVENT, &pos);
-    packetHandler(BEACON_AMPLITUDE_EVENT, &pos);
 }

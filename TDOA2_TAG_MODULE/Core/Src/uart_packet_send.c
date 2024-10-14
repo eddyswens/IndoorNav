@@ -83,76 +83,43 @@ void packetHandler(uint8_t eventType, void* EventData)
     }
 }
 
-uint8_t* createPacket(uint8_t eventType, void* EventData, size_t* packetSize) 
-{
+uint8_t* createPacket(uint8_t eventType, void* EventData, size_t* packetSize) {
     uint8_t* packet = NULL;
     *packetSize = 0; 
-    Event *eventHeader = NULL; // Указатель на заголовок события
-    
-    switch (eventType) // Проверка на тип пакета
-    {
+    Event *eventHeader = NULL;
+    size_t eventDataSize = 0;
+
+    // Определяем размер пакета в зависимости от типа структуры
+    switch (eventType) {
         case TELEMETRY_EVENT: 
-        {
-            TagPosition* event = (TagPosition*)EventData; //Подводим переданную структуру в её истинный формат
-
-           *packetSize = sizeof(TelemetryEvent) + 1;  // Выделяем память под пакет + чек-сумму
-
-            packet = (uint8_t*)malloc(*packetSize); //Выделяем память пакету под стать размеру структуры
-
-            if (packet == NULL)  return NULL; // Обработка ошибки выделения памяти
-
-            TelemetryEvent* packet_event = (TelemetryEvent*)packet; // Приводим к типу TelemetryEvent*
-
-            eventHeader = &packet_event->e; // Cсылаем ранее созданный указатель Event на Event этой структуры
-
-            // Заполнение полей
-            packet_event->orientation = event->orientation;
-            packet_event->pos[0] = event->x;
-            packet_event->pos[1] = event->y;
-            packet_event->pos[2] = event->z;
-            packet_event->vel[0] = 0;          
-            packet_event->vel[1] = 0;          
-            packet_event->vel[2] = 0;          
-            packet_event->voltage = 0;      
-            packet_event->beacons = 0;
-            packet_event->status = 0;
-            packet_event->posError = 28;
-
+            eventDataSize = sizeof(TelemetryEvent);
             break;
-        }
         case BEACON_AMPLITUDE_EVENT: 
-        {
-
-           *packetSize = sizeof(BeaconAmplitude) + 1;
-            packet = (uint8_t*)malloc(*packetSize);
-            if (packet == NULL)  return NULL;
-            
-            BeaconAmplitude* packet_event = (BeaconAmplitude*)packet;
-            eventHeader = &packet_event->e;
-
-            packet_event->amp[0] = 4;
-            packet_event->amp[1] = 3;
-            packet_event->amp[2] = 6;
-            packet_event->amp[3] = 1;
-
-        break;
-        }
+            eventDataSize = sizeof(BeaconAmplitude);
+            break;
         default: 
-        {
             return NULL; 
-        }
     }
 
-    eventHeader->refs = 0xFE; // Общие данные: указатель на начало пакета
+    *packetSize = eventDataSize + 1; // Общий размер пакета вместе с чек-суммой
+    packet = (uint8_t*)malloc(*packetSize); //Выделяем память пакету под стать типу структуры
+
+    if (packet == NULL || EventData == NULL) return NULL;
+
+    // Копируем нашу структуру в пакет
+    memcpy(packet, EventData, eventDataSize); 
+
+    // Стандартное заполнение Event
+    eventHeader = (Event*)packet;
+    eventHeader->refs = 0xFE; // Маркер начала пакета
     eventHeader->addr = 0x00;
-    eventHeader->num = eventType; // Общие данные: тип пакета
-    eventHeader->size = *packetSize - sizeof(Event) - 1; // Коррекция размера пакета
+    eventHeader->num = eventType; // Тип пакета
+    eventHeader->size = eventDataSize - sizeof(Event); // Заполнение size (самого содержимого структуры, без Event)
 
     uint8_t crc = calculateEventCRC(eventHeader); // Вычисление чек-суммы
-    packet[*packetSize - 1] = crc; // Добавление чек-суммы в пакет
+    packet[*packetSize - 1] = crc; // Добавление чек-суммы в конец пакета
 
-    // Пакет готов, возвращаем его
-    return packet;
+    return packet; // Пакет готов, возвращаем его
 }
 
 void sendTelemetryPacket(uint8_t* packet, size_t packetsize) 
